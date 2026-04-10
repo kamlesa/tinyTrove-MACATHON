@@ -6,7 +6,6 @@ export const useUserAuthStore = create((set) => ({
     try {
       console.log("Adding user");
       const res = await axiosInstance.post("/user-auth/create");
-      //console.log(res.data);
     } catch (err) {
       console.log("error message", err);
     }
