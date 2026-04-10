@@ -1,60 +1,75 @@
-import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useState } from 'react';
+import { Text, View, Pressable, StatusBar } from 'react-native';
+
+const pages = [
+  { key: 'home', label: 'Home' },
+  { key: 'map', label: 'Map' },
+  { key: 'profile', label: 'Profile' },
+  { key: 'post', label: 'Post' },
+  { key: 'search', label: 'Search' },
+];
+
+const pageTitles = {
+  home: 'Home Page',
+  map: 'Map Page',
+  profile: 'Profile Page',
+  post: 'Post Page',
+  search: 'Search Page',
+};
 
 export default function App() {
-  const [count, setCount] = useState(0);
+  const [activePage, setActivePage] = useState('home');
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>MACATHON 2026</Text>
-      <Text style={styles.subtitle}>React + Expo Go starter app</Text>
-      <Pressable
-        style={styles.button}
-        onPress={() => setCount((value) => value + 1)}
-      >
-        <Text style={styles.buttonText}>Tap me</Text>
-      </Pressable>
-      <Text style={styles.counter}>Tapped {count} times</Text>
       <StatusBar style="auto" />
+      <View style={styles.content}>
+        <Text style={styles.title}>{pageTitles[activePage]}</Text>
+      </View>
+
+      <View style={styles.footer}>
+        {pages.map((page) => (
+          <Pressable
+            key={page.key}
+            style={[styles.button, activePage === page.key && styles.activeButton]}
+            onPress={() => setActivePage(page.key)}
+          >
+            <Text style={styles.buttonText}>{page.label}</Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
+    flex: 1
+  },
+  content: {
     flex: 1,
-    backgroundColor: "#0A101F",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginBottom: 8,
+    fontSize: 28,
+    fontWeight: 'bold'
   },
-  subtitle: {
-    fontSize: 16,
-    color: "#A3B3CC",
-    marginBottom: 24,
-    textAlign: "center",
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderTopWidth: 1
   },
   button: {
-    backgroundColor: "#4F8CFF",
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    marginBottom: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10
   },
+
   buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
-  counter: {
-    color: "#E0E7FF",
-    fontSize: 15,
-  },
-});
+};
