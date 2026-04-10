@@ -40,23 +40,25 @@ export default function App() {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 30,
     paddingHorizontal: 8,
-    borderTopWidth: 1
+    borderTopWidth: 1,
   };
 
   const appButton = {
-    paddingTop: 3,
-    paddingBottom: 3,
+    paddingTop: 2,
+    paddingBottom: 24,
     paddingHorizontal: 12,
     borderRadius: 8,
+    justifyContent: 'flex-start',
   };
 
   const appButtonActive = {
-    paddingTop: 3,
-    paddingBottom: 3,
+    paddingTop: 2,
+    paddingBottom: 24,
     paddingHorizontal: 12,
     borderRadius: 8,
+    justifyContent: 'flex-start',
     backgroundColor: '#007AFF',
   };
 
