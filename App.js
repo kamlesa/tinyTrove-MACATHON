@@ -1,21 +1,75 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { HomePage } from './frontEnd/HomePage';
-import { MapPage } from './frontEnd/MapPage';
-import { ProfilePage } from './frontEnd/ProfilePage';
-import { PostPage } from './frontEnd/PostPage';
-import { SearchPage } from './frontEnd/Search';
+import { useState } from 'react';
+import { Text, View, Pressable, StatusBar } from 'react-native';
+
+const pages = [
+  { key: 'home', label: 'Home' },
+  { key: 'map', label: 'Map' },
+  { key: 'profile', label: 'Profile' },
+  { key: 'post', label: 'Post' },
+  { key: 'search', label: 'Search' },
+];
+
+const pageTitles = {
+  home: 'Home Page',
+  map: 'Map Page',
+  profile: 'Profile Page',
+  post: 'Post Page',
+  search: 'Search Page',
+};
 
 export default function App() {
+  const [activePage, setActivePage] = useState('home');
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/map" element={<MapPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/post" element={<PostPage />} />
-        <Route path="/search" element={<SearchPage />} />
-      </Routes>
-    </BrowserRouter>
+    <View style={styles.container}>
+      <StatusBar style="auto" />
+      <View style={styles.content}>
+        <Text style={styles.title}>{pageTitles[activePage]}</Text>
+      </View>
+
+      <View style={styles.footer}>
+        {pages.map((page) => (
+          <Pressable
+            key={page.key}
+            style={[styles.button, activePage === page.key && styles.activeButton]}
+            onPress={() => setActivePage(page.key)}
+          >
+            <Text style={styles.buttonText}>{page.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
   );
 }
+
+const styles = {
+  container: {
+    flex: 1
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold'
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderTopWidth: 1
+  },
+  button: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10
+  },
+
+  buttonText: {
+    fontWeight: '600',
+  },
+};
