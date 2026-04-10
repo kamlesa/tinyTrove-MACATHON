@@ -6,6 +6,7 @@ import Profile from './frontEnd/Profile';
 import Post from './frontEnd/Post';
 import Search from './frontEnd/Search';
 
+
 const pages = [
   { key: 'home', label: 'Home' },
   { key: 'map', label: 'Map' },
@@ -39,22 +40,24 @@ export default function App() {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 20,
     paddingHorizontal: 8,
     borderTopWidth: 1
   };
 
   const appButton = {
-    paddingVertical: 10,
+    paddingTop: 3,
+    paddingBottom: 3,
     paddingHorizontal: 12,
     borderRadius: 8,
   };
 
   const appButtonActive = {
-    paddingVertical: 10,
+    paddingTop: 3,
+    paddingBottom: 3,
     paddingHorizontal: 12,
     borderRadius: 8,
-
+    backgroundColor: '#007AFF',
   };
 
   const buttonText = {
