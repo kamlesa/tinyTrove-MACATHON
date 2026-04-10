@@ -1,9 +1,12 @@
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useUserAuthStore } from "./stores/useUserAuthStore";
 
 export default function App() {
   const [count, setCount] = useState(0);
+
+  const { addUser } = useUserAuthStore();
 
   return (
     <View style={styles.container}>
@@ -11,7 +14,10 @@ export default function App() {
       <Text style={styles.subtitle}>React + Expo Go starter app</Text>
       <Pressable
         style={styles.button}
-        onPress={() => setCount((value) => value + 1)}
+        onPress={() => {
+          setCount((value) => value + 1);
+          addUser("data");
+        }}
       >
         <Text style={styles.buttonText}>Tap me</Text>
       </Pressable>
