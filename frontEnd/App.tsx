@@ -8,11 +8,12 @@ import { LoginScreen } from './pages/Login';
 import { ProfileScreen } from './pages/Profile';
 import { HomeScreen } from './pages/Home';
 import Map from './pages/Map'
-import Post from './pages/Post';
+import { Post } from './pages/Post';
 import { Search } from './pages/Search';
 import StoreMap from './pages/StoreMap';
 import CommunityDetail from './pages/CommunityDetail';
 import TreasureDetail from './pages/TreasureDetail';
+import PostDetail from './pages/PostDetail';
 
 // --- NAVIGATION CONFIG ---
 const pages = [
@@ -34,6 +35,8 @@ export default function App() {
   const [currentStore, setCurrentStore] = useState(null);
   const [currentCommunity, setCurrentCommunity] = useState(null);
   const [currentTreasure, setCurrentTreasure] = useState(null);
+  const [currentPost, setCurrentPost] = useState(null);
+  const [previousPage, setPreviousPage] = useState("search");
 
   useEffect(() => {
     // TODO: Check for stored auth token and set session
@@ -46,20 +49,30 @@ export default function App() {
     setUserId(null);
   };
 
-  const handleStoreSelect = (store) => {
+  const handleStoreSelect = (store, origin = "search") => {
     setCurrentStore(store);
+    setPreviousPage(origin);
     setActivePage("storeMap");
   };
 
-  const handleCommunitySelect = (community) => {
+  const handleCommunitySelect = (community, origin = "search") => {
     setCurrentCommunity(community);
+    setPreviousPage(origin);
     setActivePage("communityDetail");
   };
 
-  const handleTreasureSelect = (treasure) => {
+  const handleTreasureSelect = (treasure, origin = "search") => {
     setCurrentTreasure(treasure);
+    setPreviousPage(origin);
     setActivePage("treasureDetail");
   };
+
+  const handlePostSelect = (post, origin = "profile") => {
+    setCurrentPost(post);
+    setPreviousPage(origin);
+    setActivePage("postDetail");
+  };
+
   const handleLoginSuccess = (user) => {
     setSession(user);
     setUserId(user?.id);
@@ -89,13 +102,14 @@ export default function App() {
   const renderContent = () => {
     switch (activePage) {
       case 'home': return <HomeScreen onLogout={handleLogout} />;
-      case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} />;
       case 'map': return <Map locations={locations}/>;
       case 'post': return <Post userId={userId} />;
-      case 'search': return <Search onStoreSelect={handleStoreSelect} onCommunitySelect={handleCommunitySelect} onTreasureSelect={handleTreasureSelect} />;
-      case 'storeMap': return <StoreMap store={currentStore} onBack={() => setActivePage("search")} />;
-      case 'communityDetail': return <CommunityDetail community={currentCommunity} onBack={() => setActivePage("search")} />;
-      case 'treasureDetail': return <TreasureDetail treasure={currentTreasure} onBack={() => setActivePage("search")} />;
+      case 'search': return <Search onStoreSelect={(store) => handleStoreSelect(store, 'search')} onCommunitySelect={(community) => handleCommunitySelect(community, 'search')} onTreasureSelect={(treasure) => handleTreasureSelect(treasure, 'search')} />;
+      case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} onCommunitySelect={(community) => handleCommunitySelect(community, 'profile')} onPostSelect={(post) => handlePostSelect(post, 'profile')} />;
+      case 'storeMap': return <StoreMap store={currentStore} onBack={() => setActivePage(previousPage)} />;
+      case 'communityDetail': return <CommunityDetail community={currentCommunity} onBack={() => setActivePage(previousPage)} />;
+      case 'treasureDetail': return <TreasureDetail treasure={currentTreasure} onBack={() => setActivePage(previousPage)} />;
+      case 'postDetail': return <PostDetail post={currentPost} onBack={() => setActivePage(previousPage)} />;
       default: return <HomeScreen onLogout={handleLogout} />;
     }
   };
