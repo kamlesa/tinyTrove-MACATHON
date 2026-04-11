@@ -198,28 +198,22 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
         <FlatList
           data={posts}
           keyExtractor={(item) => item.id}
+          numColumns={3}
           renderItem={({ item }) => (
             <Pressable
-              style={[styles.resultCard, styles.postResultCard]}
+              style={styles.gridItem}
               onPress={() => onPostSelect?.(item)}
             >
-              <View style={[styles.iconCircle, styles.postIcon]}> 
-                {item.photo_url ? (
-                  <Image source={{ uri: item.photo_url }} style={styles.resultImage} />
-                ) : (
-                  <Text style={[styles.iconText, styles.postIconText]}>📸</Text>
-                )}
-              </View>
-              <View style={styles.resultText}>
-                <Text style={styles.resultName}>{item.caption || 'Untitled post'}</Text>
-                <Text style={styles.resultMeta}>{item.location || 'No location provided'}</Text>
-              </View>
+              <Image 
+                source={{ uri: item.photo_url || 'https://via.placeholder.com/100' }} 
+                style={styles.gridImage} 
+              />
             </Pressable>
           )}
           ListEmptyComponent={
             <Text style={styles.emptyText}>No posts yet!</Text>
           }
-          contentContainerStyle={styles.resultsList}
+          contentContainerStyle={styles.gridContainer}
         />
       )}
 
@@ -278,6 +272,8 @@ const styles = StyleSheet.create({
   tabText: { fontSize: 14, fontWeight: '600', color: '#999' },
   activeTabText: { color: '#FF8FAB' },
   gridItem: { flex: 1/3, aspectRatio: 1, padding: 1 },
+  gridImage: { width: '100%', height: '100%', borderRadius: 8 },
+  gridContainer: { padding: 10 },
   resultCard: {
     flexDirection: 'row',
     alignItems: 'center',

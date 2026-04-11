@@ -35,10 +35,7 @@ export default function PostDetail({ post, onBack }) {
         caption,
         location,
         photo_url,
-        stores ( name, address ),
-        post_tags ( 
-          treasure_tag ( name ) 
-        )
+        stores ( name, address )
       `)
       .eq("id", post.id)
       .single();

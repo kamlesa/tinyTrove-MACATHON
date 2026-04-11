@@ -21,6 +21,8 @@ import CommunityDetail from "./pages/CommunityDetail";
 import TreasureDetail from "./pages/TreasureDetail";
 import PostDetail from "./pages/PostDetail";
 
+// --- COMPONENTS ---
+import Button from './components/button';
 // --- NAVIGATION CONFIG ---
 const pages = [
   { key: "home", label: "Home" },
@@ -83,6 +85,22 @@ export default function App() {
     setSession(user);
     setUserId(user?.id);
   };
+
+  const handleHeaderBack = () => {
+    switch (activePage) {
+      case "storeMap":
+      case "communityDetail":
+      case "treasureDetail":
+        setActivePage("search");
+        break;
+      default:
+        setActivePage("home");
+        break;
+    }
+  };
+
+  const showBackButton = ["storeMap", "communityDetail", "treasureDetail"].includes(activePage);
+
 
   // --- LOADING STATE ---
   if (isInitializing) {
@@ -182,13 +200,25 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      {/* Top Header */}
+
       <View style={styles.header}>
+        {showBackButton && (
+          <View style={styles.backButtonWrapper}>
+            <Button widthSize="icon" heightSize="icon" onClick={handleHeaderBack}>
+              ←
+            </Button>
+          </View>
+        )}
+
         <Text style={styles.appTitle}>tinyTrove</Text>
       </View>
 
       {/* Main Page Content */}
-      <View style={styles.mainContent}>{renderContent()}</View>
+      <View style={styles.mainContent}>
+        {renderContent()}
+      </View>
+
+     
 
       {/* Navigation Footer */}
       <View style={styles.footer}>
@@ -217,6 +247,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -227,12 +258,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    paddingTop: 20,
+    paddingTop: 40,
     paddingBottom: 10,
     alignItems: "center",
+    justifyContent: "center",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
+    position: "relative",
   },
+
+  backButtonWrapper: {
+    position: "absolute",
+    left: 12,
+    top: 30,
+    zIndex: 1,
+  },
+
   appTitle: {
     fontSize: 22,
     fontWeight: "bold",
@@ -251,6 +292,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     paddingVertical: 14,
+    paddingBottom: 40,
     borderTopWidth: 1,
     borderTopColor: "#eee",
     backgroundColor: "#fff",

@@ -1,99 +1,163 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
+import { View, Text, StyleSheet, Image, ScrollView, Pressable } from "react-native";
+import Button from "../components/button";
+import ImageGrid from "../components/imageGrid";
 
-export default function CommunityDetail({ community, onBack }) {
+export default function Community({ community, onBack }) {
   if (!community) return null;
 
+  const profile = community.profile ?? require("./Image1.png");
+  const background = community.background ?? require("./Image1.png");
+  const title = community.title ?? "title";
+  const members = community.members ?? "2999";
+
+  const treasureImages = [
+    { id: "1", source: require("./Image1.png"), onClick: () => {} },
+    { id: "2", source: require("./Image1.png"), onClick: () => {} },
+    { id: "3", source: require("./Image1.png"), onClick: () => {} },
+    { id: "4", source: require("./Image1.png"), onClick: () => {} },
+    { id: "5", source: require("./Image1.png"), onClick: () => {} },
+    { id: "6", source: require("./Image1.png"), onClick: () => {} },
+  ];
+
+  const postImages = [
+    { id: "1", source: require("./Image1.png"), onClick: () => {} },
+    { id: "2", source: require("./Image1.png"), onClick: () => {} },
+    { id: "3", source: require("./Image1.png"), onClick: () => {} },
+    { id: "4", source: require("./Image1.png"), onClick: () => {} },
+    { id: "5", source: require("./Image1.png"), onClick: () => {} },
+    { id: "6", source: require("./Image1.png"), onClick: () => {} },
+    { id: "7", source: require("./Image1.png"), onClick: () => {} },
+    { id: "8", source: require("./Image1.png"), onClick: () => {} },
+    { id: "9", source: require("./Image1.png"), onClick: () => {} },
+    { id: "10", source: require("./Image1.png"), onClick: () => {} },
+    { id: "11", source: require("./Image1.png"), onClick: () => {} },
+    { id: "12", source: require("./Image1.png"), onClick: () => {} },
+  ];
+
   return (
-    <View style={styles.container}>
-      {/* Back Button */}
-      <View style={styles.header}>
-        <Pressable onPress={onBack} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </Pressable>
+    <View style={styles.page}>
+    <View style={styles.topSection}>
+      <View style={styles.frame}>
+        <Image source={background} style={styles.background} resizeMode="cover" />
       </View>
 
-      {/* Community Details */}
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>{community.name}</Text>
+      <View style={styles.profileSection}>
+        <Image source={profile} style={styles.profile} resizeMode="cover" />
 
-        {community.photo && (
-          <Image source={{ uri: community.photo }} style={styles.photo} />
-        )}
+        <View style={styles.infoContainer}>
+          <View style={styles.titleText}>
+            <Text style={styles.title}>{title}</Text>
 
-        <Text style={styles.description}>{community.description}</Text>
-
-        <View style={styles.stats}>
-          <Text style={styles.statText}>Members: {community.members || 0}</Text>
-          <Text style={styles.statText}>Treasures: {community.treasures || 0}</Text>
+            <View style={styles.memberBox}>
+              <Text style={styles.members}>{members} members</Text>
+              <Button widthSize="medium" heightSize="small" onClick={() => {}}>
+                Join Club
+              </Button>
+            </View>
+          </View>
         </View>
+      </View>
 
-        <Text style={styles.placeholder}>Community details page - to be completed</Text>
-      </ScrollView>
+      <View style={styles.treasureContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.treasureList}
+        >
+          {treasureImages.map((item) => (
+            <Pressable key={item.id} onPress={item.onClick} style={styles.treasureItem}>
+              <Image source={item.source} style={styles.treasureImage} resizeMode="cover" />
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
     </View>
+
+    <View style={styles.imageGrid}>
+      <ImageGrid images={postImages} />
+    </View>
+  </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  page: {
     flex: 1,
-    backgroundColor: "#fffbf5",
+    backgroundColor: "#FFF8F0",
   },
-  header: {
-    paddingTop: 50,
-    paddingHorizontal: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  topSection: {
+    flexShrink: 0,
   },
-  backButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: "#71A5D3",
-    borderRadius: 20,
-    alignSelf: 'flex-start',
+  frame: {
+    width: "100%",
+    height: 140,
+    overflow: "hidden",
   },
-  backButtonText: {
-    color: 'white',
-    fontWeight: '600',
+  background: {
+    width: "100%",
+    height: "100%",
   },
-  content: {
-    flex: 1,
+  backButtonWrapper: {
+    position: "absolute",
+    top: 10,
+    left: 12,
+    zIndex: 10,
   },
-  scrollContent: {
-    padding: 16,
+  profileSection: {
+    marginTop: -50,
+    paddingHorizontal: 20,
+  },
+  profile: {
+    height: 100,
+    aspectRatio: 1,
+    borderWidth: 2,
+    borderColor: "#fff",
+    backgroundColor: "#fff",
+  },
+  infoContainer: {
+    marginTop: 5,
+    backgroundColor: "#FFF8F0",
+    paddingBottom: 0,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#2e1d14',
-    marginBottom: 16,
+    fontSize: 40,
   },
-  photo: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 16,
+  members: {
+    fontSize: 20,
   },
-  description: {
-    fontSize: 16,
-    color: '#6e5a68',
-    lineHeight: 24,
-    marginBottom: 16,
+  titleText: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  stats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
+  memberBox: {
+    flexDirection: "column",
+    alignItems: "center",
   },
-  statText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2e1d14',
+  treasureContainer: {
+    marginTop: 12,
+    paddingVertical: 12,
+    backgroundColor: "#FFD09A",
   },
-  placeholder: {
-    fontSize: 14,
-    color: '#999',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginTop: 40,
+  treasureList: {
+    paddingHorizontal: 12,
+    gap: 12,
+    alignItems: "center",
+  },
+  treasureItem: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  treasureImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  imageGrid: {
+    flex: 1,
+    backgroundColor: "#FFF8F0",
   },
 });
