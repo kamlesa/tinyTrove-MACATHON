@@ -56,7 +56,7 @@ export function ProfileScreen({ userId, onLogout }) {
       {/* Header Section */}
       <View style={styles.header}>
         <Image 
-          source={{ uri: profile?.avatar_url || 'https://via.placeholder.com/100' }} 
+          source={{ uri: profile?.avatar_url}} 
           style={styles.avatar} 
         />
         <Text style={styles.displayName}>{profile?.display_name || 'Collector'}</Text>
