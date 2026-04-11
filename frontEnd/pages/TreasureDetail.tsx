@@ -1,76 +1,152 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
+import { View, Text, StyleSheet, Image, ImageSourcePropType, ScrollView,} from "react-native";
+import Button from "../Components/button";
+import ImageGrid from "../Components/imageGrid";
+
+
 
 export default function TreasureDetail({ treasure, onBack }) {
   if (!treasure) return null;
 
+  const groupImageSource =
+    treasure.groupImageSource ??
+    (treasure.groupPhoto ? { uri: treasure.groupPhoto } : require("./Image1.png"));
+
+  const characterImageSource =
+    treasure.characterImageSource ??
+    (treasure.photo ? { uri: treasure.photo } : require("./Image1.png"));
+
+  const group = treasure.group ?? "group";
+  const title = treasure.name ?? "Title";
+  const description = treasure.description ?? "Description";
+
+  const images =[
+      { id: "1", source: require("./Image1.png") },
+      { id: "2", source: require("./Image1.png") },
+      { id: "3", source: require("./Image1.png") },
+      { id: "4", source: require("./Image1.png") },
+      { id: "5", source: require("./Image1.png") },
+      { id: "6", source: require("./Image1.png") },
+      { id: "0", source: require("./Image1.png") },
+      { id: "7", source: require("./Image1.png") },
+      { id: "8", source: require("./Image1.png") },
+      { id: "9", source: require("./Image1.png") },
+      { id: "88", source: require("./Image1.png") },
+      { id: "99", source: require("./Image1.png") },
+    ];
+
   return (
-    <View style={styles.container}>
-      {/* Back Button */}
-      <View style={styles.header}>
-        <Pressable onPress={onBack} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </Pressable>
+    <View style={styles.page}>
+      <View style={styles.topBar}>
+       
+        <Image source={groupImageSource} style={styles.groupImage} />
+        <Text style={styles.title}>{group}</Text>
       </View>
 
-      {/* Treasure Details */}
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>{treasure.name}</Text>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.profile}>
+          <Image source={characterImageSource} style={styles.image} />
 
-        {treasure.photo && (
-          <Image source={{ uri: treasure.photo }} style={styles.photo} />
-        )}
+          <View style={styles.textBox}>
+            <Text style={styles.name}>{title}</Text>
+            <Text style={styles.description}>{description}</Text>
+          </View>
+        </View>
 
-        <Text style={styles.placeholder}>Treasure details page - to be completed</Text>
+        <View style={styles.middle}>
+          <View style={styles.buttons}>
+            <Button widthSize="medium" heightSize="small" onClick={() => {}}>
+              Find
+            </Button>
+            <Button widthSize="medium" heightSize="small" onClick={() => {}}>
+              Filter
+            </Button>
+          </View>
+        </View>
+
+        <View style={styles.imageGrid}>
+          <ImageGrid images={images} />
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  page: {
     flex: 1,
-    backgroundColor: "#fffbf5",
+    backgroundColor: "#FFF8F0",
   },
-  header: {
-    paddingTop: 50,
-    paddingHorizontal: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  topBar: {
+    width: "100%",
+    minHeight: 70,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    paddingLeft: 10,
+    paddingRight: 10,
+    backgroundColor: "#FFF0C9",
   },
-  backButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: "#ff8fab",
+  backButtonWrapper: {
+    position: "absolute",
+    top: 10,
+    left: 12,
+    zIndex: 100,
+  },
+  groupImage: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    alignSelf: 'flex-start',
   },
-  backButtonText: {
-    color: 'white',
-    fontWeight: '600',
+  title: {
+    fontSize: 20,
+    marginLeft: 10,
   },
   content: {
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    paddingBottom: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#2e1d14',
-    marginBottom: 16,
+  profile: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: 9,
+    backgroundColor: "#FFF8F0",
   },
-  photo: {
-    width: '100%',
-    height: 200,
+  image: {
+    width: 90,
+    height: 90,
     borderRadius: 12,
-    marginBottom: 16,
   },
-  placeholder: {
-    fontSize: 14,
-    color: '#999',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginTop: 40,
+  textBox: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  name: {
+    fontSize: 32,
+    fontWeight: "600",
+  },
+  description: {
+    fontSize: 16,
+    marginTop: 4,
+  },
+  middle: {
+    alignItems: "center",
+  },
+  buttons: {
+    flexDirection: "row",
+    marginTop: 9,
+    gap: 30,
+    backgroundColor: "#FFF8F0",
+  },
+  imageGrid: {
+    paddingTop: 10,
+    alignItems: "center",
+    backgroundColor: "#FFF8F0",
   },
 });

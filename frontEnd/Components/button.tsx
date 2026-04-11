@@ -4,8 +4,8 @@ import { Pressable, StyleSheet, Text } from "react-native";
 interface ButtonProps {
   onClick?: () => void;
   children: React.ReactNode;
-  widthSize?: "small" | "medium" | "large";
-  heightSize?: "small" | "medium" | "large";
+  widthSize?: "small" | "medium" | "large"| "icon";
+  heightSize?: "small" | "medium" | "large"| "icon";
   textSize?: "small" | "medium" | "large";
   fitContent?: boolean;
   color?: string;
@@ -45,7 +45,8 @@ export default function Button({ children, onClick, color = "#71A5D3", widthSize
         borderRadius: 16,
         alignItems: "center",
         justifyContent: "center",
-        paddingHorizontal: 16,
+        paddingHorizontal: 1,
+        paddingVertical: 0,
     },
 
     fitContent: {
@@ -61,6 +62,10 @@ export default function Button({ children, onClick, color = "#71A5D3", widthSize
     large: {
         width: 200,
     },
+    icon: {
+       width: 36,
+
+    },
 
     smallHeight: {
         height: 36,
@@ -70,6 +75,9 @@ export default function Button({ children, onClick, color = "#71A5D3", widthSize
     },
     largeHeight: {
         height: 64,
+    },
+    iconHeight: {
+        height: 36,
     },
 
     text: {

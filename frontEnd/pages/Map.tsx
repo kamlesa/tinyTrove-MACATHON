@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
-import StoreInfoPanel from "../components/StoreInfoPanel";
+import StoreInfoPanel from "../Components/StoreInfoPanel";
 
 export default function Map({ locations = [] }) {
   const [selectedLocation, setSelectedLocation] = useState(null);

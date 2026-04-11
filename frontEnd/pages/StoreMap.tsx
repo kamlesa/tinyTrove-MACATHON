@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Pressable, Text } from "react-native";
 import { WebView } from "react-native-webview";
-import StoreInfoPanel from "../components/StoreInfoPanel";
+import StoreInfoPanel from "../Components/StoreInfoPanel";
 
 export default function StoreMap({ store, onBack }) {
   const [selectedLocation, setSelectedLocation] = useState(store ? {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
-import ImageUploader from "../components/ImageUpload";
+import ImageUploader from "../Components/ImageUpload";
 
 export default function Post({ userId }) {
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
