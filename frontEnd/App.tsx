@@ -10,6 +10,9 @@ import { HomeScreen } from './pages/Home';
 import Map from './pages/Map'
 import Post from './pages/Post';
 import { Search } from './pages/Search';
+import StoreMap from './pages/StoreMap';
+import CommunityDetail from './pages/CommunityDetail';
+import TreasureDetail from './pages/TreasureDetail';
 
 // --- NAVIGATION CONFIG ---
 const pages = [
@@ -28,6 +31,9 @@ export default function App() {
   
   // Navigation State
   const [activePage, setActivePage] = useState("home");
+  const [currentStore, setCurrentStore] = useState(null);
+  const [currentCommunity, setCurrentCommunity] = useState(null);
+  const [currentTreasure, setCurrentTreasure] = useState(null);
 
   useEffect(() => {
     // TODO: Check for stored auth token and set session
@@ -40,6 +46,20 @@ export default function App() {
     setUserId(null);
   };
 
+  const handleStoreSelect = (store) => {
+    setCurrentStore(store);
+    setActivePage("storeMap");
+  };
+
+  const handleCommunitySelect = (community) => {
+    setCurrentCommunity(community);
+    setActivePage("communityDetail");
+  };
+
+  const handleTreasureSelect = (treasure) => {
+    setCurrentTreasure(treasure);
+    setActivePage("treasureDetail");
+  };
   const handleLoginSuccess = (user) => {
     setSession(user);
     setUserId(user?.id);
@@ -72,7 +92,10 @@ export default function App() {
       case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} />;
       case 'map': return <Map locations={locations}/>;
       case 'post': return <Post userId={userId} />;
-      case 'search': return <Search />;
+      case 'search': return <Search onStoreSelect={handleStoreSelect} onCommunitySelect={handleCommunitySelect} onTreasureSelect={handleTreasureSelect} />;
+      case 'storeMap': return <StoreMap store={currentStore} onBack={() => setActivePage("search")} />;
+      case 'communityDetail': return <CommunityDetail community={currentCommunity} onBack={() => setActivePage("search")} />;
+      case 'treasureDetail': return <TreasureDetail treasure={currentTreasure} onBack={() => setActivePage("search")} />;
       default: return <HomeScreen onLogout={handleLogout} />;
     }
   };
