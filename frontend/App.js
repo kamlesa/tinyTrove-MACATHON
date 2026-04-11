@@ -3,9 +3,12 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView } from 'react-native';
 
 // --- SCREENS ---
-import { LoginScreen } from './LoginScreen';
-import { ProfileScreen } from './ProfileScreen';
-import { HomeScreen } from './HomeScreen';
+import { LoginScreen } from './pages/Login.tsx';
+import { ProfileScreen } from './pages/Profile.tsx';
+import { HomeScreen } from './pages/Home.tsx';
+import { Map } from './pages/Map.tsx';
+import { Post } from './pages/Post.tsx';
+import { Search } from './pages/Search.tsx';
 
 // --- NAVIGATION CONFIG ---
 const pages = [
@@ -60,9 +63,9 @@ export default function App() {
     switch (activePage) {
       case 'home': return <HomeScreen onLogout={handleLogout} />;
       case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} />;
-      case 'map': return <View style={styles.content}><Text>Map Page</Text></View>;
-      case 'post': return <View style={styles.content}><Text>Post Page</Text></View>;
-      case 'search': return <View style={styles.content}><Text>Search Page</Text></View>;
+      case 'map': return <Map />;
+      case 'post': return <Post />;
+      case 'search': return <Search />;
       default: return <HomeScreen onLogout={handleLogout} />;
     }
   };

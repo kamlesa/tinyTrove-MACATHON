@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Alert, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
-import { authApi } from './lib/authApi';
+import { authApi } from '../lib/authApi';
 
 export function LoginScreen({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
