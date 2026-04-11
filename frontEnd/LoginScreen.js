@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Alert, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
-import { supabase } from './UserAuth'; 
+import { authApi } from './lib/authApi';
 
-export function LoginScreen() {
+export function LoginScreen({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -13,8 +13,13 @@ export function LoginScreen() {
 
   async function signInWithEmail() {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) Alert.alert('Error', error.message);
+    try {
+      const response = await authApi.signIn(email, password);
+      Alert.alert('Success', 'You are signed in!');
+      onLoginSuccess(response.user);
+    } catch (error) {
+      Alert.alert('Error', error.response?.data?.error || error.message);
+    }
     setLoading(false);
   }
 
@@ -26,37 +31,12 @@ export function LoginScreen() {
     }
 
     setLoading(true);
-    
-    // 2. Create the secure user (Email, Password, UUID)
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (authError) {
-      Alert.alert('Sign Up Error', authError.message);
-      setLoading(false);
-      return;
-    }
-
-    // 3. Link the UUID to your new Profiles table
-    if (authData.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          { 
-            id: authData.user.id, // This is the UUID link!
-            username: username.toLowerCase(), 
-            display_name: displayName,
-            avatar_url: '' // Leave blank for now until you build an image uploader
-          }
-        ]);
-
-      if (profileError) {
-        Alert.alert('Profile Error', profileError.message);
-      } else {
-        Alert.alert('Success!', 'Welcome to tinyTrove!');
-      }
+    try {
+      const response = await authApi.signUp(email, password, username, displayName);
+      Alert.alert('Success', 'Welcome to tinyTrove! Check your email for verification.');
+      onLoginSuccess(response.user);
+    } catch (error) {
+      Alert.alert('Error', error.response?.data?.error || error.message);
     }
     setLoading(false);
   }

@@ -1,12 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { supabase } from './UserAuth'; // Your database connection
+import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import { authApi } from './lib/authApi';
 
-export function HomeScreen() {
+export function HomeScreen({ onLogout }) {
   
-  // This function tells Supabase to log the user out
   async function handleSignOut() {
-    await supabase.auth.signOut();
+    try {
+      await authApi.signOut();
+      Alert.alert('Success', 'You have been signed out');
+      onLogout();
+    } catch (error) {
+      Alert.alert('Error', error.response?.data?.error || error.message);
+    }
   }
 
   return (

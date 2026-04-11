@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView } from 'react-native';
 
-// --- SUPABASE & SCREENS ---
-import { supabase } from './UserAuth';
+// --- SCREENS ---
 import { LoginScreen } from './LoginScreen';
 import { ProfileScreen } from './ProfileScreen';
-import { HomeScreen } from './HomeScreen'; // Ensure this exists
+import { HomeScreen } from './HomeScreen';
 
 // --- NAVIGATION CONFIG ---
 const pages = [
@@ -20,25 +19,27 @@ const pages = [
 export default function App() {
   // Auth State
   const [session, setSession] = useState(null);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [userId, setUserId] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(false);
   
   // Navigation State
   const [activePage, setActivePage] = useState("home");
 
   useEffect(() => {
-    // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setIsInitializing(false);
-    });
-
-    // Listen for Auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
+    // TODO: Check for stored auth token and set session
+    // For now, user starts logged out
+    setIsInitializing(false);
   }, []);
+
+  const handleLogout = () => {
+    setSession(null);
+    setUserId(null);
+  };
+
+  const handleLoginSuccess = (user) => {
+    setSession(user);
+    setUserId(user?.id);
+  };
 
   // --- LOADING STATE ---
   if (isInitializing) {
@@ -51,18 +52,18 @@ export default function App() {
 
   // --- AUTH GATE: If no session, show Login ---
   if (!session) {
-    return <LoginScreen />;
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
   // --- MAIN APP: If logged in, show Navigation ---
   const renderContent = () => {
     switch (activePage) {
-      case 'home': return <HomeScreen />;
-      case 'profile': return <ProfileScreen />;
+      case 'home': return <HomeScreen onLogout={handleLogout} />;
+      case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} />;
       case 'map': return <View style={styles.content}><Text>Map Page</Text></View>;
       case 'post': return <View style={styles.content}><Text>Post Page</Text></View>;
       case 'search': return <View style={styles.content}><Text>Search Page</Text></View>;
-      default: return <HomeScreen />;
+      default: return <HomeScreen onLogout={handleLogout} />;
     }
   };
 

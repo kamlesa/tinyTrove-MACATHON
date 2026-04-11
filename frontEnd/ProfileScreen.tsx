@@ -1,46 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, FlatList, ActivityIndicator, Pressable } from 'react-native';
-import { supabase } from './UserAuth';
+import { View, Text, StyleSheet, Image, FlatList, ActivityIndicator, Pressable, Alert } from 'react-native';
+import { authApi } from './lib/authApi';
 
-export function ProfileScreen() {
+export function ProfileScreen({ userId, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    getProfileData();
-  }, []);
+    if (userId) {
+      getProfileData();
+    }
+  }, [userId]);
 
   async function getProfileData() {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Fetch profile and posts in parallel
+      const [profileData, postsData] = await Promise.all([
+        authApi.getProfile(userId),
+        authApi.getPosts(userId)
+      ]);
 
-      if (user) {
-        // 1. Fetch Profile Info
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) throw profileError;
-        setProfile(profileData);
-
-        // 2. Fetch User's Posts
-        const { data: postsData, error: postsError } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (postsError) throw postsError;
-        setPosts(postsData);
-      }
+      setProfile(profileData);
+      setPosts(postsData);
     } catch (error) {
-      console.error('Error fetching profile:', error.message);
+      Alert.alert('Error', error.response?.data?.error || error.message);
+      console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSignOut() {
+    try {
+      await authApi.signOut();
+      Alert.alert('Success', 'You have been signed out');
+      onLogout();
+    } catch (error) {
+      Alert.alert('Error', error.response?.data?.error || error.message);
     }
   }
 
@@ -86,7 +85,7 @@ export function ProfileScreen() {
         }
       />
       
-      <Pressable style={styles.signOutButton} onPress={() => supabase.auth.signOut()}>
+      <Pressable style={styles.signOutButton} onPress={handleSignOut}>
         <Text style={styles.signOutText}>Sign Out</Text>
       </Pressable>
     </View>
