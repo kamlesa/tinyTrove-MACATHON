@@ -6,8 +6,8 @@ import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView } fr
 import { LoginScreen } from './pages/Login';
 import { ProfileScreen } from './pages/Profile';
 import { HomeScreen } from './pages/Home';
-import { Map } from './pages/Map';
-import { Post } from './pages/Post';
+import Map from './pages/Map'
+import Post from './pages/Post';
 import { Search } from './pages/Search';
 
 // --- NAVIGATION CONFIG ---
@@ -89,7 +89,7 @@ export default function App() {
       <View style={styles.mainContent}>
         {renderContent()}
       </View>
-      
+
       {/* Navigation Footer */}
       <View style={styles.footer}>
         {pages.map((page) => (
