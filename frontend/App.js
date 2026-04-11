@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Text, View, Pressable, StatusBar, TextInput } from "react-native";
 import { WebView } from "react-native-webview";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import ImageUploader from './components/ImageUpload';
 
 const pages = [
   { key: "home", label: "Home" },
@@ -144,6 +145,9 @@ const mapHTML = `
 function MainApp() {
   const [activePage, setActivePage] = useState("home");
   const { addUser } = useUserAuthStore();
+  const handleImage = (uri) => {
+    console.log('Selected image URI:', uri);
+  };
   return (
     <SafeAreaView style={styles.container}>
        <Text style={styles.title}>MACATHON 2026</Text>
@@ -180,6 +184,7 @@ function MainApp() {
         ) : (
           <View style={styles.content}>
             <Text style={styles.title}>{pageTitles[activePage]}</Text>
+                  <ImageUploader onImageSelected={handleImage} />
           </View>
         )}
       </View>
