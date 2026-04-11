@@ -50,9 +50,17 @@ export default function Map({ locations = [] }) {
 
       async function addMarkers(locations) {
         clearMarkers();
-        for (const loc of locations) {
-          const position = await geocodeAddress(loc.address);
-          if (position) {
+        // Geocode all addresses in parallel instead of sequentially
+        const geocodePromises = locations.map(loc => 
+          geocodeAddress(loc.address)
+            .then(position => ({ loc, position, success: true }))
+            .catch(() => ({ loc, position: null, success: false }))
+        );
+        const results = await Promise.all(geocodePromises);
+        
+        // Add markers for all successfully geocoded locations
+        results.forEach(({ loc, position, success }) => {
+          if (success && position) {
             const marker = new google.maps.Marker({
               position: position,
               map: map,
@@ -63,6 +71,11 @@ export default function Map({ locations = [] }) {
             });
             markers.push(marker);
           }
+        });
+
+        // If no markers were geocoded, center on default location
+        if (markers.length === 0) {
+          map.setCenter(defaultCenter);
         }
       }
 
@@ -73,9 +86,12 @@ export default function Map({ locations = [] }) {
           center: center
         });
 
-        addMarkers(locations);
-
         document.getElementById('loading').style.display = 'none';
+        
+        // Load markers after map is visible
+        if (locations.length > 0) {
+          addMarkers(locations);
+        }
       }
 
       // Try to get user's location
