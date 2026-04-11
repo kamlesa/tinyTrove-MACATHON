@@ -105,7 +105,13 @@ export default function App() {
       case 'map': return <Map locations={locations}/>;
       case 'post': return <Post userId={userId} />;
       case 'search': return <Search onStoreSelect={(store) => handleStoreSelect(store, 'search')} onCommunitySelect={(community) => handleCommunitySelect(community, 'search')} onTreasureSelect={(treasure) => handleTreasureSelect(treasure, 'search')} />;
-      case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} onCommunitySelect={(community) => handleCommunitySelect(community, 'profile')} onPostSelect={(post) => handlePostSelect(post, 'profile')} />;
+      case 'profile': return <ProfileScreen 
+          userId={userId} 
+          onLogout={handleLogout} 
+          // ADD THESE TWO LINES:
+          onCommunitySelect={(community) => handleCommunitySelect(community, 'profile')} 
+          onPostSelect={(post) => handlePostSelect(post, 'profile')}
+        />;
       case 'storeMap': return <StoreMap store={currentStore} onBack={() => setActivePage(previousPage)} />;
       case 'communityDetail': return <CommunityDetail community={currentCommunity} onBack={() => setActivePage(previousPage)} />;
       case 'treasureDetail': return <TreasureDetail treasure={currentTreasure} onBack={() => setActivePage(previousPage)} />;
