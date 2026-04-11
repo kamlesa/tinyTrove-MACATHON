@@ -36,7 +36,7 @@ export default function Post() {
   return (
     <div className={`page`}>
       <div className={`center`}>
-        <div className={`title`}>Posting Page</div>
+        <div className={`title`}>Postinrgjnkegejneknjg Page</div>
       </div>
 
       <div className={`buttonRow`}>
