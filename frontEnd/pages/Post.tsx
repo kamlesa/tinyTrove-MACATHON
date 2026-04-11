@@ -1,7 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-
+import ImageUploader
+ from "../components/ImageUpload";
 export default function Post() {
+  const handleImage = (uri) => {
+    console.log('Selected image URI:', uri);
+  };
   return (
     <View style={styles.page}>
       <View style={styles.center}>
