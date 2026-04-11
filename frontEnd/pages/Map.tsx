@@ -1,8 +1,14 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
+import StoreInfoPanel from "../components/StoreInfoPanel";
 
-const mapHTML = `
+export default function Map({ locations = [] }) {
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
+  const locationsJson = JSON.stringify(locations);
+
+  const mapHTML = `
 <!DOCTYPE html>
 <html>
   <head>
@@ -13,78 +19,61 @@ const mapHTML = `
     <style>
       html, body { height: 100%; margin: 0; padding: 0; }
       #container { display: flex; flex-direction: column; height: 100%; }
-      #searchContainer { 
-        padding: 12px; 
-        background: #F5F1E8; 
-        border-bottom: 2px solid #8B6F47;
-      }
-      #searchBox {
-        padding: 10px 12px;
-        border: 2px solid #8B6F47;
-        border-radius: 8px;
-        font-size: 16px;
-        width: 100%;
-        box-sizing: border-box;
-        background: white;
-      }
       #map { flex: 1; width: 100%; }
       #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     </style>
   </head>
   <body>
     <div id="container">
-      <div id="searchContainer">
-        <input id="searchBox" type="text" placeholder="Search locations...">
-      </div>
       <div id="map"></div>
     </div>
-    <div id="loading" style="display: none;">Loading your location...</div>
+    <div id="loading">Loading map...</div>
     <script>
       let map;
       let markers = [];
-      const defaultCenter = { lat: 37.7749, lng: -122.4194 };
+      const defaultCenter = { lat: -37.9016, lng: 145.1155 };
+      const locations = ${locationsJson};
 
       function clearMarkers() {
         markers.forEach(marker => marker.setMap(null));
         markers = [];
       }
 
-      function addMarkers(locations) {
+      async function geocodeAddress(address) {
+        const response = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(address) + '&key=AIzaSyBhCrEsAMyzkWJMzVmMQKg5yhKidiIBleE');
+        const data = await response.json();
+        if (data.results && data.results[0]) {
+          return data.results[0].geometry.location;
+        }
+        return null;
+      }
+
+      async function addMarkers(locations) {
         clearMarkers();
-        locations.forEach(loc => {
-          const marker = new google.maps.Marker({
-            position: { lat: loc.lat, lng: loc.lng },
-            map: map,
-            title: loc.title
-          });
-          markers.push(marker);
-        });
+        for (const loc of locations) {
+          const position = await geocodeAddress(loc.address);
+          if (position) {
+            const marker = new google.maps.Marker({
+              position: position,
+              map: map,
+              title: loc.title || loc.address
+            });
+            google.maps.event.addListener(marker, 'click', () => {
+              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'markerClick', location: loc }));
+            });
+            markers.push(marker);
+          }
+        }
       }
 
       function initMap(center) {
         const mapElement = document.getElementById('map');
         map = new google.maps.Map(mapElement, {
-          zoom: 15,
+          zoom: 12,
           center: center
         });
 
-        const allLocations = [
-          { title: 'Location 1', lat: center.lat + 0.01, lng: center.lng + 0.01 },
-          { title: 'Location 2', lat: center.lat - 0.01, lng: center.lng + 0.01 },
-          { title: 'Location 3', lat: center.lat + 0.005, lng: center.lng - 0.015 },
-          { title: 'Your Location', lat: center.lat, lng: center.lng }
-        ];
-
-        addMarkers(allLocations);
-
-        // Search functionality
-        document.getElementById('searchBox').addEventListener('input', (e) => {
-          const searchTerm = e.target.value.toLowerCase();
-          const filtered = allLocations.filter(loc => 
-            loc.title.toLowerCase().includes(searchTerm) || searchTerm === ''
-          );
-          addMarkers(filtered.length > 0 ? filtered : allLocations);
-        });
+        addMarkers(locations);
 
         document.getElementById('loading').style.display = 'none';
       }
@@ -112,22 +101,31 @@ const mapHTML = `
 </html>
 `;
 
-export default function Map() {
+  const onMessage = (event) => {
+    const data = JSON.parse(event.nativeEvent.data);
+    if (data.type === 'markerClick') {
+      setSelectedLocation(data.location);
+    }
+  };
+
   return (
     <View style={styles.page}>
-      <Text>Maps Page Probs</Text>
       <WebView
-        style={styles.webview}
+        style={[styles.webview, selectedLocation && styles.webviewReduced]}
         source={{ html: mapHTML }}
         scalesPageToFit={true}
         startInLoadingState={true}
         geolocationEnabled={true}
         javaScriptEnabled={true}
         originWhitelist={["*"]}
+        onMessage={onMessage}
         onGeolocationPermissionShowPrompt={({ onAllow, onDeny }) => {
           onAllow();
         }}
       />
+      {selectedLocation && (
+        <StoreInfoPanel location={selectedLocation} onClose={() => setSelectedLocation(null)} />
+      )}
     </View>
   );
 }
@@ -135,9 +133,14 @@ export default function Map() {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    width: "100%"
+    width: "100%",
+    backgroundColor: "white",
+    position: "relative",
   },
   webview: {
+    flex: 1,
+  },
+  webviewReduced: {
     flex: 1,
   },
 });

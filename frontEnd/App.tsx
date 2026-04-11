@@ -27,12 +27,18 @@ export default function App() {
   const [activePage, setActivePage] = useState<Page>("login");
   const { addUser } = useUserAuthStore();
 
+  const locations = [ //TODO: fetch locations via treasure/database
+    { id: '1', address: 'Level3/258 Little Bourke St, Melbourne VIC 3000', title: 'Melridai' },
+    { id: '2', address: 'Kidstuff Malvern', title: 'Kidstuff Malvern' },
+    { id: '3', address: '21 Chancellors Walk, Clayton VIC 3168', title: 'Monash Kuromi Store' },
+  ];
+
   const renderPage = () => {
     switch (activePage) {
       case "home":
         return <Home />;
       case "map":
-        return <Map />;
+        return <Map locations={locations} />;
       case "profile":
         return <Profile />;
       case "post":
