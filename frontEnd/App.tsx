@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, Pressable, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // --- SCREENS ---
 import { LoginScreen } from './pages/Login';
@@ -70,7 +71,7 @@ export default function App() {
       case 'home': return <HomeScreen onLogout={handleLogout} />;
       case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} />;
       case 'map': return <Map locations={locations}/>;
-      case 'post': return <Post />;
+      case 'post': return <Post userId={userId} />;
       case 'search': return <Search />;
       default: return <HomeScreen onLogout={handleLogout} />;
     }

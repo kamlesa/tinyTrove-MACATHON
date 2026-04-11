@@ -12,11 +12,12 @@ import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../lib/supabase'
 
 type Props = {
-  userId: string;
+  folderName: string;
+  bucketName: string;
   onUploadComplete?: (url: string) => void;
 };
 
-const ImageUploader: React.FC<Props> = ({ userId, onUploadComplete }) => {
+const ImageUploader: React.FC<Props> = ({ folderName, bucketName, onUploadComplete }) => {
   const [image, setImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -39,7 +40,7 @@ const ImageUploader: React.FC<Props> = ({ userId, onUploadComplete }) => {
     if (!hasPermission) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'], // ✅ updated API
+      mediaTypes: ['images'], 
       allowsEditing: true,
       quality: 0.8,
     });
@@ -47,29 +48,27 @@ const ImageUploader: React.FC<Props> = ({ userId, onUploadComplete }) => {
     if (result.canceled) return;
 
     const uri = result.assets[0].uri;
-    console.log('Image URI:', uri);
+    // console.log('Image URI:', uri);
     setImage(uri);
 
     try {
       setUploading(true);
 
-      // ✅ Convert to ArrayBuffer (best for React Native)
       const response = await fetch(uri);
       const arrayBuffer = await response.arrayBuffer();
 
-      const filePath = `${userId}/${Date.now()}.jpg`;
+      const filePath = `${folderName}/${Date.now()}.jpg`;
 
       const { error } = await supabase.storage
-        .from('ProfilePictures')
+        .from(bucketName)
         .upload(filePath, arrayBuffer, {
           contentType: 'image/jpeg',
         });
 
       if (error) throw error;
 
-      // ✅ Get public URL
       const { data } = supabase.storage
-        .from('ProfilePictures')
+        .from(bucketName)
         .getPublicUrl(filePath);
 
       const publicUrl = data.publicUrl;
