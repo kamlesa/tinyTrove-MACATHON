@@ -40,3 +40,73 @@ export const createPost = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+export const createCommunity = async (req, res) => {
+  try {
+    // 1. Extract the incoming data
+    const { 
+      userId, 
+      name, 
+      description, 
+      photo_url, 
+      banner_url, 
+      tags, 
+      theme_color 
+    } = req.body;
+
+    // 2. Safety check: need an ID and a Name
+    if (!userId || !name) {
+      return res.status(400).json({ error: "User ID and Community Name are required" });
+    }
+
+    // 3. STEP ONE: Create the Community (with safe null fallbacks)
+    const { data: communityData, error: communityError } = await supabase
+      .from("communities")
+      .insert([
+        {
+          creator_id: userId,
+          name: name,
+          description: description || null,
+          photo_url: photo_url || null,
+          banner_url: banner_url || null,
+          tags: tags && tags.length > 0 ? tags : null,
+          theme_color: theme_color || null,
+          number_of_members: 1 // Start at 1 because the creator is about to join!
+        },
+      ])
+      .select();
+
+    // Check if community creation failed
+    if (communityError) {
+      console.error("Database Error (Community):", communityError);
+      return res.status(400).json({ error: communityError.message });
+    }
+
+    const newCommunity = communityData[0];
+
+    // 4. STEP TWO: Auto-Join the Creator
+    // We use the ID of the community we just created above!
+    const { error: memberError } = await supabase
+      .from("community_members")
+      .insert([
+        {
+          community_id: newCommunity.id,
+          user_id: userId,
+          // 'joined_at' will be set automatically by Supabase defaults
+        }
+      ]);
+
+    if (memberError) {
+      // We log this, but we don't crash the server because the community WAS created successfully.
+      console.error("Failed to auto-join creator to community:", memberError);
+    } else {
+      console.log(`Successfully created '${name}' and added creator!`);
+    }
+
+    // 5. Send the new community back to the mobile app
+    res.status(201).json(newCommunity);
+
+  } catch (err) {
+    console.error("Server Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};

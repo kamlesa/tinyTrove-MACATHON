@@ -167,6 +167,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
-    fontWeight: "bold",
   },
 });

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, ActivityIndicator, Pressable, Alert } from 'react-native';
 import { authApi } from '../lib/authApi';
 
-export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelect }) {
+export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelect, onCreateCommunity}) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -130,6 +130,15 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
         <FlatList
           data={communities}
           keyExtractor={(item) => item.id}
+          // ADDED: The Create Community Button sits at the top of the list!
+          ListHeaderComponent={
+            <Pressable 
+              style={styles.createCommunityBtn}
+              onPress={onCreateCommunity}
+            >
+              <Text style={styles.createCommunityBtnText}>+ Create New Community</Text>
+            </Pressable>
+          }
           renderItem={({ item }) => (
             <Pressable
               style={[styles.resultCard, styles.communityCard]}
@@ -162,7 +171,6 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -179,6 +187,26 @@ const styles = StyleSheet.create({
   activeTab: { borderBottomColor: '#FF8FAB' },
   tabText: { fontSize: 14, fontWeight: '600', color: '#999' },
   activeTabText: { color: '#FF8FAB' },
+  
+  // ADDED: New button styles
+  createCommunityBtn: {
+    backgroundColor: '#71A5D3',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    margin: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  createCommunityBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
   gridItem: { flex: 1/3, aspectRatio: 1, padding: 1 },
   resultCard: {
     flexDirection: 'row',
@@ -186,6 +214,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 14,
+    marginHorizontal: 16, // Added to match the button spacing
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 4 },
@@ -197,6 +226,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5E5D8',
     borderLeftWidth: 4,
     borderLeftColor: '#A47552',
+    marginTop: 16, // Padding for the first post
   },
   communityCard: {
     backgroundColor: '#E8F2FF',
@@ -247,7 +277,7 @@ const styles = StyleSheet.create({
   resultsList: {
     paddingBottom: 40,
   },
-  emptyText: { textAlign: 'center', marginTop: 50, color: '#999' },
+  emptyText: { textAlign: 'center', marginTop: 20, color: '#999' },
   signOutButton: { margin: 20, padding: 15, borderRadius: 8, backgroundColor: '#f5f5f5', alignItems: 'center' },
   signOutText: { color: '#ff4d4d', fontWeight: 'bold' }
 });

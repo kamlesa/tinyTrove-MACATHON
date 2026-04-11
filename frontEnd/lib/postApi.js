@@ -18,4 +18,32 @@ export const postApi = {
       throw err; 
     }
   },
+  createCommunity: async (
+    userId, 
+    name, 
+    description, 
+    photoUrl, 
+    bannerUrl, 
+    tags, 
+    themeColor
+  ) => {
+    try {
+      // Make sure this URL matches exactly what is in your Express backend!
+      const response = await axiosInstance.post("/post/create-community", {
+        userId: userId,
+        name: name,
+        description: description,
+        photo_url: photoUrl,    
+        banner_url: bannerUrl,  
+        tags: tags,
+        theme_color: themeColor 
+      });
+      
+      return response.data;
+      
+    } catch (err) {
+      console.log("Create Community Error: ", err);
+      throw err; 
+    }
+  },
 };

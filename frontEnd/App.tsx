@@ -8,7 +8,8 @@ import { LoginScreen } from './pages/Login';
 import { ProfileScreen } from './pages/Profile';
 import { HomeScreen } from './pages/Home';
 import Map from './pages/Map'
-import { Post } from './pages/Post';
+import Post  from './pages/Post';
+import CreateCommunity from './pages/CommunityUpload';
 import { Search } from './pages/Search';
 import StoreMap from './pages/StoreMap';
 import CommunityDetail from './pages/CommunityDetail';
@@ -98,14 +99,16 @@ export default function App() {
     { id: '3', address: '21 Chancellors Walk, Clayton VIC 3168', title: 'Monash Kuromi Store' },
   ];
 
-  // --- MAIN APP: If logged in, show Navigation ---
+// --- MAIN APP: If logged in, show Navigation ---
   const renderContent = () => {
     switch (activePage) {
       case 'home': return <HomeScreen onLogout={handleLogout} />;
       case 'map': return <Map locations={locations}/>;
       case 'post': return <Post userId={userId} />;
-      case 'search': return <Search onStoreSelect={(store) => handleStoreSelect(store, 'search')} onCommunitySelect={(community) => handleCommunitySelect(community, 'search')} onTreasureSelect={(treasure) => handleTreasureSelect(treasure, 'search')} />;
-      case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} onCommunitySelect={(community) => handleCommunitySelect(community, 'profile')} onPostSelect={(post) => handlePostSelect(post, 'profile')} />;
+      case 'search': return <Search onStoreSelect={(store) => handleStoreSelect(store, 'search')} onCommunitySelect={(community) => handleCommunitySelect(community, 'search')} onTreasureSelect={(treasure) => handleTreasureSelect(treasure, 'search')} />;     
+      // Inside your renderContent function:
+      case 'profile':return <ProfileScreen userId={userId} onLogout={handleLogout} onCommunitySelect={(community) => handleCommunitySelect(community, 'profile')} onPostSelect={(post) => handlePostSelect(post, 'profile')} onCreateCommunity={() => {setPreviousPage('profile'); setActivePage('createCommunity');}}/>
+      case 'createCommunity': return <CreateCommunity userId={userId} onGoBack={() => setActivePage('profile')} />;
       case 'storeMap': return <StoreMap store={currentStore} onBack={() => setActivePage(previousPage)} />;
       case 'communityDetail': return <CommunityDetail community={currentCommunity} onBack={() => setActivePage(previousPage)} />;
       case 'treasureDetail': return <TreasureDetail treasure={currentTreasure} onBack={() => setActivePage(previousPage)} />;
