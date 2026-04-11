@@ -1,20 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Pressable, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // --- SCREENS ---
-import { LoginScreen } from './pages/Login';
-import { ProfileScreen } from './pages/Profile';
-import { HomeScreen } from './pages/Home';
-import Map from './pages/Map'
-import { Post } from './pages/Post';
-import { Search } from './pages/Search';
-import StoreMap from './pages/StoreMap';
-import CommunityDetail from './pages/CommunityDetail';
-import TreasureDetail from './pages/TreasureDetail';
-import PostDetail from './pages/PostDetail';
+import { LoginScreen } from "./pages/Login";
+import { ProfileScreen } from "./pages/Profile";
+import { HomeScreen } from "./pages/Home";
+import Map from "./pages/Map";
+import Post from "./pages/Post";
+import { Search } from "./pages/Search";
+import StoreMap from "./pages/StoreMap";
+import CommunityDetail from "./pages/CommunityDetail";
+import TreasureDetail from "./pages/TreasureDetail";
+import PostDetail from "./pages/PostDetail";
 
+// --- COMPONENTS ---
+import Button from './components/button';
 // --- NAVIGATION CONFIG ---
 const pages = [
   { key: "home", label: "Home" },
@@ -29,7 +37,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [userId, setUserId] = useState(null);
   const [isInitializing, setIsInitializing] = useState(false);
-  
+
   // Navigation State
   const [activePage, setActivePage] = useState("home");
   const [currentStore, setCurrentStore] = useState(null);
@@ -78,6 +86,22 @@ export default function App() {
     setUserId(user?.id);
   };
 
+  const handleHeaderBack = () => {
+    switch (activePage) {
+      case "storeMap":
+      case "communityDetail":
+      case "treasureDetail":
+        setActivePage("search");
+        break;
+      default:
+        setActivePage("home");
+        break;
+    }
+  };
+
+  const showBackButton = ["storeMap", "communityDetail", "treasureDetail"].includes(activePage);
+
+
   // --- LOADING STATE ---
   if (isInitializing) {
     return (
@@ -92,40 +116,100 @@ export default function App() {
     return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
-  const locations = [ //TODO: fetch locations via treasure/database
-    { id: '1', address: 'Level3/258 Little Bourke St, Melbourne VIC 3000', title: 'Melridai' },
-    { id: '2', address: 'Kidstuff Malvern', title: 'Kidstuff Malvern' },
-    { id: '3', address: '21 Chancellors Walk, Clayton VIC 3168', title: 'Monash Kuromi Store' },
+  const locations = [
+    //TODO: fetch locations via treasure/database
+    {
+      id: "1",
+      address: "Level3/258 Little Bourke St, Melbourne VIC 3000",
+      title: "Melridai",
+    },
+    { id: "2", address: "Kidstuff Malvern", title: "Kidstuff Malvern" },
+    {
+      id: "3",
+      address: "21 Chancellors Walk, Clayton VIC 3168",
+      title: "Monash Kuromi Store",
+    },
   ];
 
   // --- MAIN APP: If logged in, show Navigation ---
   const renderContent = () => {
     switch (activePage) {
-      case 'home': return <HomeScreen onLogout={handleLogout} />;
-      case 'map': return <Map locations={locations}/>;
-      case 'post': return <Post userId={userId} />;
-      case 'search': return <Search onStoreSelect={(store) => handleStoreSelect(store, 'search')} onCommunitySelect={(community) => handleCommunitySelect(community, 'search')} onTreasureSelect={(treasure) => handleTreasureSelect(treasure, 'search')} />;
-      case 'profile': return <ProfileScreen 
-          userId={userId} 
-          onLogout={handleLogout} 
-          // ADD THESE TWO LINES:
-          onCommunitySelect={(community) => handleCommunitySelect(community, 'profile')} 
-          onPostSelect={(post) => handlePostSelect(post, 'profile')}
-        />;
-      case 'storeMap': return <StoreMap store={currentStore} onBack={() => setActivePage(previousPage)} />;
-      case 'communityDetail': return <CommunityDetail community={currentCommunity} onBack={() => setActivePage(previousPage)} />;
-      case 'treasureDetail': return <TreasureDetail treasure={currentTreasure} onBack={() => setActivePage(previousPage)} />;
-      case 'postDetail': return <PostDetail post={currentPost} onBack={() => setActivePage(previousPage)} />;
-      default: return <HomeScreen onLogout={handleLogout} />;
+      case "home":
+        return <HomeScreen onLogout={handleLogout} />;
+      case "map":
+        return <Map locations={locations} />;
+      case "post":
+        return <Post userId={userId} />;
+      case "search":
+        return (
+          <Search
+            onStoreSelect={(store) => handleStoreSelect(store, "search")}
+            onCommunitySelect={(community) =>
+              handleCommunitySelect(community, "search")
+            }
+            onTreasureSelect={(treasure) =>
+              handleTreasureSelect(treasure, "search")
+            }
+          />
+        );
+      case "profile":
+        return (
+          <ProfileScreen
+            userId={userId}
+            onLogout={handleLogout}
+            onCommunitySelect={(community) =>
+              handleCommunitySelect(community, "profile")
+            }
+            onPostSelect={(post) => handlePostSelect(post, "profile")}
+          />
+        );
+      case "storeMap":
+        return (
+          <StoreMap
+            store={currentStore}
+            onBack={() => setActivePage(previousPage)}
+          />
+        );
+      case "communityDetail":
+        return (
+          <CommunityDetail
+            community={currentCommunity}
+            onBack={() => setActivePage(previousPage)}
+          />
+        );
+      case "treasureDetail":
+        return (
+          <TreasureDetail
+            treasure={currentTreasure}
+            onBack={() => setActivePage(previousPage)}
+          />
+        );
+      case "postDetail":
+        return (
+          <PostDetail
+            post={currentPost}
+            onBack={() => setActivePage(previousPage)}
+          />
+        );
+      default:
+        return <HomeScreen onLogout={handleLogout} />;
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar style="auto" />
-      
-      {/* Top Header */}
+
+
       <View style={styles.header}>
+        {showBackButton && (
+          <View style={styles.backButtonWrapper}>
+            <Button widthSize="icon" heightSize="icon" onClick={handleHeaderBack}>
+              ←
+            </Button>
+          </View>
+        )}
+
         <Text style={styles.appTitle}>tinyTrove</Text>
       </View>
 
@@ -133,6 +217,8 @@ export default function App() {
       <View style={styles.mainContent}>
         {renderContent()}
       </View>
+
+     
 
       {/* Navigation Footer */}
       <View style={styles.footer}>
@@ -145,20 +231,23 @@ export default function App() {
             ]}
             onPress={() => setActivePage(page.key)}
           >
-            <Text style={[
-              styles.navButtonText,
-              activePage === page.key && styles.activeButtonText
-            ]}>
+            <Text
+              style={[
+                styles.navButtonText,
+                activePage === page.key && styles.activeButtonText,
+              ]}
+            >
               {page.label}
             </Text>
           </Pressable>
         ))}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -169,16 +258,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    paddingTop: 20,
+    paddingTop: 40,
     paddingBottom: 10,
-    alignItems: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
+    position: "relative",
   },
+
+  backButtonWrapper: {
+    position: "absolute",
+    left: 12,
+    top: 30,
+    zIndex: 1,
+  },
+
   appTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: '#FF8FAB',
+    color: "#FF8FAB",
   },
   mainContent: {
     flex: 1,
@@ -193,9 +292,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     paddingVertical: 14,
+    paddingBottom: 40,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
+    borderTopColor: "#eee",
+    backgroundColor: "#fff",
   },
   navButton: {
     paddingVertical: 8,

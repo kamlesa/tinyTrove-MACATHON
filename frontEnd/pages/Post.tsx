@@ -1,14 +1,27 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, Pressable, Alert, ActivityIndicator, ScrollView } from "react-native";
-import { authApi } from "../lib/authApi";
-import ImageUploader from "../components/ImageUpload";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Pressable,
+  Alert,
+  ScrollView,
+  ActivityIndicator
+} from "react-native";
+import LocationPicker from "../components/LocationPicker";
+import TagPicker from "../components/TagPicker";
+import { postApi } from "../lib/postApi";
 
-
-export function Post({ userId }) {
+// If using TypeScript (.tsx), use: export default function Post({ userId }: { userId: string })
+export default function Post({ userId }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [photoUrl, setPhotoUrl] = useState("");
-  const [communityId, setCommunityId] = useState("");
+  const [location, setLocation] = useState(null);
+  const [tags, setTags] = useState([]);
+  
+  // ADDED: State for the image URL since your backend requires it
+  const [image, setImage] = useState(""); 
   const [loading, setLoading] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
@@ -16,36 +29,36 @@ export function Post({ userId }) {
     // console.log('Image uploaded successfully:', url);
     setUploadedImageUrl(url);
   };
-  async function handleCreatePost() {
-    if (!photoUrl) {
-      Alert.alert("Required", "Please provide an image URL");
+  async function submitPost() {
+    // Safety check before calling the API
+    if (!userId) {
+      Alert.alert("Error", "Missing User ID. Are you logged in?");
       return;
     }
 
-    if (!title.trim()) {
-      Alert.alert("Required", "Please enter a title");
-      return;
-    }
-
+    setLoading(true);
     try {
-      setLoading(true);
-      const result = await authApi.createPost(
-        userId,
-        title,
+      // THE FIX: We are now passing exactly what the backend expects!
+      const response = await postApi.createPost(
+        userId,       // <-- CRITICAL FIX
+        image,        // <-- CRITICAL FIX
         description,
-        photoUrl,
-        communityId || null
+        location
       );
       
-      Alert.alert("Success", "Post created successfully!");
-      // Reset form
+      Alert.alert("Success", "Post Created!");
+      
+      // Clear the form after success
       setTitle("");
       setDescription("");
-      setPhotoUrl("");
-      setCommunityId("");
+      setImage("");
+      setTags([]);
+      setLocation(null);
+
     } catch (error) {
-      Alert.alert("Error", error.response?.data?.error || error.message);
-      console.error("Error creating post:", error);
+      // Axios errors hide the message in error.response.data
+      const errorMsg = error.response?.data?.error || error.message;
+      Alert.alert("Server Error", errorMsg);
     } finally {
       setLoading(false);
     }
@@ -53,15 +66,14 @@ export function Post({ userId }) {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Create a Post</Text>
-      </View>
+      <View style={styles.content}>
+        <Text style={styles.title}>New Post</Text>
 
-      <View style={styles.form}>
         <Text style={styles.label}>Title *</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter post title"
+          placeholderTextColor="#555"
           value={title}
           onChangeText={setTitle}
           editable={!loading}
@@ -71,6 +83,7 @@ export function Post({ userId }) {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="What's your collection?"
+          placeholderTextColor="#555"
           value={description}
           onChangeText={setDescription}
           multiline
@@ -78,33 +91,25 @@ export function Post({ userId }) {
           editable={!loading}
         />
 
-        <Text style={styles.label}>Image URL *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="https://example.com/image.jpg"
-          value={photoUrl}
-          onChangeText={setPhotoUrl}
-          editable={!loading}
-        />
-
-        <Text style={styles.label}>Community ID (Optional)</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Leave empty for no community"
-          value={communityId}
-          onChangeText={setCommunityId}
-          editable={!loading}
+        <LocationPicker chooseLocation={setLocation} />
+        
+        {/* Fixed the filter bug here */}
+        <TagPicker
+          addTag={(newItem) => setTags([...tags, newItem])}
+          removeTag={(itemToRemove) => 
+            setTags(tags.filter((t) => t !== itemToRemove))
+          }
         />
 
         <Pressable 
           style={[styles.button, loading && styles.buttonDisabled]} 
-          onPress={handleCreatePost}
+          onPress={submitPost}
           disabled={loading}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Create Post</Text>
+            <Text style={styles.buttonText}>Submit Post</Text>
           )}
         </Pressable>
       </View>
@@ -115,52 +120,52 @@ export function Post({ userId }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFD09A",
   },
-  header: {
-    padding: 20,
-    backgroundColor: "#FF8FAB",
-    alignItems: "center",
+  content: {
+    paddingHorizontal: 20,
+    paddingVertical: 50,
+    paddingBottom: 100, // Extra padding for ScrollView
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
+    marginBottom: 20,
+    textAlign: "center",
     fontWeight: "bold",
-    color: "#fff",
-  },
-  form: {
-    padding: 20,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
+    marginTop: 15,
+    marginBottom: 5,
     color: "#333",
-    marginBottom: 8,
-    marginTop: 12,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
+    width: "100%",
+    backgroundColor: "#E6E6E6",
     padding: 12,
-    fontSize: 14,
-    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    fontSize: 16,
+    color: "#333", // Darker text color for input
   },
   textArea: {
-    height: 100,
-    textAlignVertical: "top",
+    minHeight: 100,
+    textAlignVertical: "top", // Required for Android multiline
   },
   button: {
-    backgroundColor: "#FF8FAB",
-    padding: 16,
+    backgroundColor: "#4F8CFF",
+    paddingVertical: 15,
+    paddingHorizontal: 16,
     borderRadius: 8,
-    alignItems: "center",
-    marginTop: 24,
+    marginTop: 30,
+    alignItems: "center", // Better than alignSelf for full width
   },
   buttonDisabled: {
-    opacity: 0.6,
+    backgroundColor: "#A0C1FF",
   },
   buttonText: {
     color: "#fff",
+    fontWeight: "600",
     fontSize: 16,
     fontWeight: "bold",
   },
