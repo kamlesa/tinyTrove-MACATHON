@@ -9,7 +9,13 @@ import {
   StyleSheet,
 } from "react-native";
 
-export default function LocationPicker() {
+interface LocationPickerProps {
+  chooseLocation: (location: string) => void;
+}
+
+export default function LocationPicker({
+  chooseLocation,
+}: LocationPickerProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [location, setLocation] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -31,10 +37,12 @@ export default function LocationPicker() {
   return (
     <View>
       {/* BUTTON / SELECTED VALUE */}
-      <Pressable onPress={() => setModalVisible(true)}>
+      <Pressable style={styles.trigger} onPress={() => setModalVisible(true)}>
         <Text style={styles.triggerText}>
           {location ? location : "Add location"}
         </Text>
+
+        <Text style={styles.arrow}>›</Text>
       </Pressable>
 
       {/* MODAL */}
@@ -54,7 +62,8 @@ export default function LocationPicker() {
               <Pressable
                 style={styles.item}
                 onPress={() => {
-                  setLocation(item); // set selected
+                  chooseLocation(item); // set selected
+                  setLocation(item);
                   setModalVisible(false); // close modal
                   setQuery(""); // reset search
                 }}
@@ -74,10 +83,28 @@ export default function LocationPicker() {
 }
 
 const styles = StyleSheet.create({
+  trigger: {
+    width: "100%",
+    backgroundColor: "#D9D9D9", // 👈 slightly darker grey
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+
+    marginTop: 15,
+  },
+
   triggerText: {
     fontSize: 16,
     color: "#333",
-    marginTop: 15,
+  },
+
+  arrow: {
+    fontSize: 20,
+    color: "#555",
   },
 
   modal: {

@@ -9,25 +9,13 @@ import {
 } from "react-native";
 import ImageUploader from "../components/ImageUpload";
 import LocationPicker from "../components/LocationPicker";
+import TagPicker from "../components/TagPicker";
 
 export default function Post() {
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [location, setLocation] = useState<string | null>(null);
 
   //Should be updated to use an official tag type
   const [tags, setTags] = useState<string[]>([]);
-
-  const [query, setQuery] = useState<string>("");
-
-  const mockLocations = [
-    "Melbourne",
-    "Sydney",
-    "Brisbane",
-    "Perth",
-    "Adelaide",
-    "Tokyo",
-    "London",
-  ];
 
   return (
     <View style={styles.page}>
@@ -42,9 +30,11 @@ export default function Post() {
           placeholderTextColor="#555"
         ></TextInput>
 
-        <LocationPicker />
-        <Text>Add tag</Text>
-        <Text>Add location</Text>
+        <LocationPicker chooseLocation={setLocation} />
+        <TagPicker
+          addTag={(item) => setTags([...tags, item])}
+          removeTag={(item) => setTags(tags.filter((item) => item !== item))}
+        ></TagPicker>
 
         <Pressable style={styles.button} onPress={() => console.log("pressed")}>
           <Text style={styles.buttonText}>Submit Post</Text>
