@@ -96,10 +96,14 @@ export const getUserPosts = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Fetch User's Posts
+    // Fetch User's Posts with linked Store and Tag data
     const { data: postsData, error: postsError } = await supabase
       .from('posts')
-      .select('*')
+      .select(`
+        *,
+        stores ( name, address ),
+        treasure_tag ( name )
+      `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -108,6 +112,33 @@ export const getUserPosts = async (req, res) => {
     }
 
     res.json(postsData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getUserCommunities = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Fetch communities the user is a member of (which includes ones they created)
+    const { data: membershipData, error: membershipError } = await supabase
+      .from('community_members')
+      .select(`
+        communities (*)
+      `)
+      .eq('user_id', userId)
+      // .order('joined_at', { ascending: false }); // Optional: order by when they joined
+
+    if (membershipError) {
+      return res.status(404).json({ error: membershipError.message });
+    }
+
+    // Supabase returns nested objects like: [{ communities: { id: 1, name: '...' } }]
+    // This .map() flattens it into a clean array of just the community objects for your frontend
+    const communitiesData = membershipData.map(membership => membership.communities);
+
+    res.json(communitiesData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
