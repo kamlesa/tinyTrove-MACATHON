@@ -11,20 +11,19 @@ import {
 interface ImageItem {
   id: string;
   source: ImageSourcePropType;
+  onClick?: () => void;
 }
 
 interface ImageGridProps {
   images: ImageItem[];
   columns?: number;
   gap?: number;
-  onImagePress?: (item: ImageItem) => void;
 }
 
 export default function ImageGrid({
   images,
   columns = 3,
   gap = 2,
-  onImagePress,
 }: ImageGridProps) {
   const { width } = useWindowDimensions();
 
@@ -46,7 +45,7 @@ export default function ImageGrid({
             height: imageSize,
             marginBottom: gap,
           }}
-          onPress={() => onImagePress?.(item)}
+          onPress={item.onClick}
         >
           <Image source={item.source} style={styles.image} resizeMode="cover" />
         </Pressable>
@@ -57,7 +56,7 @@ export default function ImageGrid({
 
 const styles = StyleSheet.create({
   list: {
-    paddingHorizontal: 1,
+    paddingHorizontal: 2,
   },
   image: {
     width: "100%",

@@ -43,12 +43,12 @@ export default function Home() {
     <View style={styles.imageGrid}>
       <ImageGrid
         images={[
-          { id: "1", source: require("./Image1.png") },
-          { id: "2", source: require("./Image1.png") },
-          { id: "3", source: require("./Image1.png") },
-          { id: "4", source: require("./Image1.png") },
-          { id: "5", source: require("./Image1.png") },
-          { id: "6", source: require("./Image1.png") },
+          { id: "1", source: require("./Image1.png"), onClick: () =>{}},
+          { id: "2", source: require("./Image1.png"), onClick: () =>{}},
+          { id: "3", source: require("./Image1.png"), onClick: () =>{}},
+          { id: "4", source: require("./Image1.png"), onClick: () =>{}},
+          { id: "5", source: require("./Image1.png"), onClick: () =>{}},
+          { id: "6", source: require("./Image1.png"), onClick: () =>{}},
         ]}
       />
     </View>
