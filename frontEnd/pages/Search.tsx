@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-export default function Search() {
+export function Search() {
   return (
     <View style={styles.page}>
       <View style={styles.center}>
