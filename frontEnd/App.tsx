@@ -84,17 +84,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  flex: 1,
+  alignSelf: "stretch",
   },
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingTop: 6,
     paddingHorizontal: 8,
     borderTopWidth: 1,
+    paddingBottom: 40,
   },
   button: {
     paddingVertical: 10,
