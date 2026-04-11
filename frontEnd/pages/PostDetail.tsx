@@ -36,7 +36,9 @@ export default function PostDetail({ post, onBack }) {
         location,
         photo_url,
         stores ( name, address ),
-        treasure_tag ( name )
+        post_tags ( 
+          treasure_tag ( name ) 
+        ) // Junction link (multiple)
       `)
       .eq("id", post.id)
       .single();
@@ -74,14 +76,7 @@ export default function PostDetail({ post, onBack }) {
     );
   }
 
-  const tagItems = [];
-  if (postData?.treasure_tag) {
-    if (Array.isArray(postData.treasure_tag)) {
-      tagItems.push(...postData.treasure_tag.map((tag) => tag?.name || String(tag)));
-    } else if (postData.treasure_tag.name) {
-      tagItems.push(postData.treasure_tag.name);
-    }
-  }
+  const tagItems = postData?.post_tags?.map(item => item.treasure_tag?.name).filter(Boolean) || [];
 
   return (
     <View style={styles.container}>

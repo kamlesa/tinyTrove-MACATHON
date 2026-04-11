@@ -100,7 +100,9 @@ export const getUserPosts = async (req, res) => {
       .select(`
         *,
         stores ( name, address ),
-        treasure_tag ( name )
+        post_tags ( 
+          treasure_tag ( name ) 
+        ) // Junction link (multiple)
       `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });

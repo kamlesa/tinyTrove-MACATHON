@@ -135,17 +135,20 @@ export default function App() {
             }
           />
         );
-      case "profile":
-        return (
-          <ProfileScreen
-            userId={userId}
-            onLogout={handleLogout}
-            onCommunitySelect={(community) =>
-              handleCommunitySelect(community, "profile")
-            }
-            onPostSelect={(post) => handlePostSelect(post, "profile")}
-          />
-        );
+      case 'profile': 
+      return (
+        <ProfileScreen 
+          userId={userId} 
+          onLogout={handleLogout} 
+          // ADD THESE TWO LINES:
+          onCommunitySelect={(community) => handleCommunitySelect(community, 'profile')} 
+          onPostSelect={(post) => handlePostSelect(post, 'profile')}
+          onCreateCommunity={() => {
+            setPreviousPage('profile'); 
+            setActivePage('createCommunity');
+          }}
+        />
+      );
       case "storeMap":
         return (
           <StoreMap
