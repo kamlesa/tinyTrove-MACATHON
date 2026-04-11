@@ -34,5 +34,5 @@ export const authApi = {
   getCommunities: async (userId) => {
     const response = await axiosInstance.get(`/user-auth/communities/${userId}`);
     return response.data;
-  },
+  }
 };
