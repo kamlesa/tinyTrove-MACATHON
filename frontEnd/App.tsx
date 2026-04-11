@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    paddingTop: 20,
+    paddingTop: 40,
     paddingBottom: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   backButtonWrapper: {
     position: "absolute",
     left: 12,
-    top: 16,
+    top: 30,
     zIndex: 1,
   },
 

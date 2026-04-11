@@ -27,14 +27,19 @@ export default function Community({ community, onBack }) {
     { id: "4", source: require("./Image1.png"), onClick: () => {} },
     { id: "5", source: require("./Image1.png"), onClick: () => {} },
     { id: "6", source: require("./Image1.png"), onClick: () => {} },
+    { id: "7", source: require("./Image1.png"), onClick: () => {} },
+    { id: "8", source: require("./Image1.png"), onClick: () => {} },
+    { id: "9", source: require("./Image1.png"), onClick: () => {} },
+    { id: "10", source: require("./Image1.png"), onClick: () => {} },
+    { id: "11", source: require("./Image1.png"), onClick: () => {} },
+    { id: "12", source: require("./Image1.png"), onClick: () => {} },
   ];
 
   return (
     <View style={styles.page}>
+    <View style={styles.topSection}>
       <View style={styles.frame}>
         <Image source={background} style={styles.background} resizeMode="cover" />
-
-       
       </View>
 
       <View style={styles.profileSection}>
@@ -67,11 +72,12 @@ export default function Community({ community, onBack }) {
           ))}
         </ScrollView>
       </View>
-
-      <View style={styles.imageGrid}>
-        <ImageGrid images={postImages} />
-      </View>
     </View>
+
+    <View style={styles.imageGrid}>
+      <ImageGrid images={postImages} />
+    </View>
+  </View>
   );
 }
 
@@ -79,6 +85,9 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: "#FFF8F0",
+  },
+  topSection: {
+    flexShrink: 0,
   },
   frame: {
     width: "100%",
@@ -148,8 +157,7 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
   },
   imageGrid: {
-    paddingTop: 10,
-    alignItems: "center",
+    flex: 1,
     backgroundColor: "#FFF8F0",
   },
 });
