@@ -510,20 +510,22 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
 
   return (
     <View style={styles.page}>
-
-
+      <View style={styles.displayNameBox}>
+        <Text style={styles.displayName}>
+            {profile?.display_name || "Collector"}
+        </Text>
+        <Text style={styles.username}>@{profile?.username || "username"}</Text>
+      </View>
       <View style={styles.topSection}>
         <Image
           key={refreshKey}
           source={{ uri: profile?.avatar_url || "https://via.placeholder.com/100" }}
           style={styles.avatar}
         />
-
+        
         <View style={styles.profileInfo}>
-          <Text style={styles.displayName}>
-            {profile?.display_name || "Collector"}
-          </Text>
-          <Text style={styles.username}>@{profile?.username || "username"}</Text>
+          
+          
 
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
@@ -626,7 +628,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 18,
-    paddingTop: 14,
     paddingBottom: 14,
     backgroundColor: "#FFD09A",
   },
@@ -640,23 +641,40 @@ const styles = StyleSheet.create({
   profileInfo: {
     flex: 1,
     marginLeft: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  displayNameBox: {
+    backgroundColor: "#FFD09A",
+    width: "100%",
+    height: 70,
+    paddingLeft: 20,
+    marginRight: 40,
+    paddingTop: 10,
   },
   displayName: {
-    fontSize: 30,
+    fontSize: 20,
     color: "#171312",
-    marginBottom: 2,
+
   },
   username: {
     fontSize: 15,
     color: "#5C524D",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   statsRow: {
     flexDirection: "row",
-    marginBottom: 10,
+
+    marginBottom: 5,
+    alignItems: "center",
+    justifyContent: "center",
   },
   statBox: {
-    marginRight: 22,
+
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 20,
+    paddingLeft: 10,
   },
   statNumber: {
     fontSize: 18,
