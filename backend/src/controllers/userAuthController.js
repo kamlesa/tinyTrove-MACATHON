@@ -3,7 +3,7 @@ import { supabase } from "../UserAuth.js";
 export const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -22,7 +22,7 @@ export const signIn = async (req, res) => {
 export const signUp = async (req, res) => {
   try {
     const { email, password, username, displayName } = req.body;
-    
+
     // Create auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -35,23 +35,21 @@ export const signUp = async (req, res) => {
 
     // Create profile
     if (authData.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: authData.user.id,
-            username: username.toLowerCase(),
-            display_name: displayName,
-            avatar_url: '',
-          }
-        ]);
+      const { error: profileError } = await supabase.from("profiles").insert([
+        {
+          id: authData.user.id,
+          username: username.toLowerCase(),
+          display_name: displayName,
+          avatar_url: "",
+        },
+      ]);
 
       if (profileError) {
         return res.status(400).json({ error: profileError.message });
       }
     }
 
-    res.json({ user: authData.user, message: 'Sign up successful' });
+    res.json({ user: authData.user, message: "Sign up successful" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -60,12 +58,12 @@ export const signUp = async (req, res) => {
 export const signOut = async (req, res) => {
   try {
     const { error } = await supabase.auth.signOut();
-    
+
     if (error) {
       return res.status(400).json({ error: error.message });
     }
 
-    res.json({ message: 'Signed out successfully' });
+    res.json({ message: "Signed out successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -77,9 +75,9 @@ export const getProfile = async (req, res) => {
 
     // Fetch Profile Info
     const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
       .single();
 
     if (profileError) {
@@ -112,6 +110,39 @@ export const getUserPosts = async (req, res) => {
     }
 
     res.json(postsData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const createPost = async (req, res) => {
+  try {
+    const { userId, image, description, location, tags } = req.body;
+    console.log(userId);
+    console.log(req.body);
+    console.log(authData);
+    if (authData.user) {
+      const { data: postData, error: postError } = await supabase
+        .from("posts")
+        .insert([
+          {
+            id: authData.user.id,
+            photo_url: image,
+            caption: description,
+            treasure_tag: tags,
+            location: location,
+          },
+        ])
+        .select();
+
+      console.log("made post");
+
+      if (profileError) {
+        return res.status(400).json({ error: profileError.message });
+      }
+    }
+
+    res.json({ user: data.user, session: data.session });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
