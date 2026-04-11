@@ -1,30 +1,15 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Pressable, FlatList, TextInput } from "react-native";
-
-const results = [
-  {
-    id: "treasure-1",
-    type: "treasure",
-    name: "Moonlight Gem",
-    community: "Kawaii Collectors",
-    icon: "💎",
-  },
-  {
-    id: "community-1",
-    type: "community",
-    name: "Sanrio Squad",
-    members: 100,
-    treasures: 20,
-    icon: "🌸",
-  },
-  {
-    id: "store-1",
-    type: "store",
-    name: "Kuromi Store",
-    address: "407 Bourke Street",
-    icon: "🏪",
-  },
-];
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  FlatList,
+  TextInput,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import { supabase } from "../lib/supabase";
 
 const filterOptions = [
   { key: "all", label: "All" },
@@ -36,18 +21,118 @@ const filterOptions = [
 export function Search() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const filteredResults = results
-    .filter((item) => activeFilter === "all" || item.type === activeFilter)
-    .filter((item) => {
-      const query = searchQuery.trim().toLowerCase();
-      if (!query) return true;
-      return (
-        item.name.toLowerCase().includes(query) ||
-        item.community?.toLowerCase().includes(query) ||
-        item.address?.toLowerCase().includes(query)
+  useEffect(() => {
+    fetchResults();
+  }, [activeFilter, searchQuery]);
+
+  const fetchResults = async () => {
+    setLoading(true);
+    const sanitizedQuery = searchQuery.trim();
+    const searchPattern = `%${sanitizedQuery.replace(/%/g, "\\%" )}%`;
+
+    try {
+      const communityQuery = supabase
+        .from("communities")
+        .select("id,name,description,photo_url,theme_color");
+      const storeQuery = supabase
+        .from("stores")
+        .select("id,name,address");
+      const treasureQuery = supabase
+        .from("treasure_tag")
+        .select("id,name,photo");
+      const communityTreasuresQuery = supabase
+        .from("community_treasures")
+        .select("community_id,treasure_id");
+
+      if (sanitizedQuery) {
+        communityQuery.or(
+          `name.ilike.${searchPattern},description.ilike.${searchPattern}`
+        );
+        storeQuery.or(
+          `name.ilike.${searchPattern},address.ilike.${searchPattern}`
+        );
+        treasureQuery.ilike("name", searchPattern);
+      }
+
+      const [
+        { data: communityData, error: communityError },
+        { data: storeData, error: storeError },
+        { data: treasureData, error: treasureError },
+        { data: communityTreasuresData, error: communityTreasuresError },
+      ] = await Promise.all([
+        communityQuery,
+        storeQuery,
+        treasureQuery,
+        communityTreasuresQuery,
+      ]);
+
+      if (communityError || storeError || treasureError || communityTreasuresError) {
+        console.error("Supabase search error:", {
+          communityError,
+          storeError,
+          treasureError,
+          communityTreasuresError,
+        });
+        setResults([]);
+        return;
+      }
+
+      const treasureCountByCommunity = (communityTreasuresData || []).reduce(
+        (acc, row) => {
+          const id = row.community_id;
+          acc[id] = (acc[id] || 0) + 1;
+          return acc;
+        },
+        {}
       );
-    });
+
+      const communityResults = (communityData || []).map((community) => ({
+        id: `community-${community.id}`,
+        type: "community",
+        name: community.name,
+        description: community.description,
+        photo: community.photo_url,
+        theme_color: community.theme_color || "#71A5D3",
+        members: community.members || 0,
+        treasures: treasureCountByCommunity[community.id] || 0,
+      }));
+
+      const storeResults = (storeData || []).map((store) => ({
+        id: `store-${store.id}`,
+        type: "store",
+        name: store.name,
+        address: store.address,
+      }));
+
+      const treasureResults = (treasureData || []).map((treasure) => ({
+        id: `treasure-${treasure.id}`,
+        type: "treasure",
+        name: treasure.name,
+        photo: treasure.photo,
+      }));
+
+      let combined = [];
+      if (activeFilter === "all" || activeFilter === "community") {
+        combined = combined.concat(communityResults);
+      }
+      if (activeFilter === "all" || activeFilter === "store") {
+        combined = combined.concat(storeResults);
+      }
+      if (activeFilter === "all" || activeFilter === "treasure") {
+        combined = combined.concat(treasureResults);
+      }
+
+      setResults(combined);
+    } catch (error) {
+      console.error("Search fetch failed", error);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getTypeStyles = (type) => {
     switch (type) {
@@ -78,12 +163,18 @@ export function Search() {
     return (
       <View style={[styles.resultCard, typeStyles.card]}>
         <View style={[styles.iconCircle, typeStyles.iconCircle]}>
-          <Text style={[styles.iconText, typeStyles.iconText]}>{item.icon}</Text>
+          {item.photo ? (
+            <Image source={{ uri: item.photo }} style={styles.resultImage} />
+          ) : (
+            <Text style={[styles.iconText, typeStyles.iconText]}>
+              {item.type === "store" ? "🏪" : "⭐"}
+            </Text>
+          )}
         </View>
         <View style={styles.resultText}>
           <Text style={styles.resultName}>{item.name}</Text>
           {item.type === "treasure" && (
-            <Text style={styles.resultMeta}>Community: {item.community}</Text>
+            <Text style={styles.resultMeta}>Treasure</Text>
           )}
           {item.type === "community" && (
             <Text style={styles.resultMeta}>
@@ -132,15 +223,21 @@ export function Search() {
         ))}
       </View>
 
-      <FlatList
-        data={filteredResults}
-        keyExtractor={(item) => item.id}
-        renderItem={renderResult}
-        contentContainerStyle={styles.resultsList}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No results found.</Text>
-        }
-      />
+      {loading ? (
+        <View style={styles.loadingWrapper}>
+          <ActivityIndicator size="large" color="#71A5D3" />
+        </View>
+      ) : (
+        <FlatList
+          data={results}
+          keyExtractor={(item) => item.id}
+          renderItem={renderResult}
+          contentContainerStyle={styles.resultsList}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No results found.</Text>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -157,6 +254,17 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#2e1d14",
     marginBottom: 16,
+  },
+  searchInput: {
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#e8d8d0",
+    marginBottom: 16,
+    color: "#2e1d14",
   },
   filterRow: {
     flexDirection: "row",
@@ -183,13 +291,17 @@ const styles = StyleSheet.create({
   filterTextActive: {
     color: "#d9417d",
   },
+  loadingWrapper: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   resultsList: {
     paddingBottom: 40,
   },
   resultCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
     marginBottom: 14,
@@ -199,27 +311,6 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  resultText: {
-    flex: 1,
-  },
-  resultName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#231f20",
-    marginBottom: 6,
-  },
-  searchInput: {
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: "#fff",
-    paddingHorizontal: 16,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#e8d8d0",
-    marginBottom: 16,
-    color: "#2e1d14",
-  },
-
   treasureCard: {
     backgroundColor: "#FFF8F0",
     borderLeftWidth: 4,
@@ -252,6 +343,11 @@ const styles = StyleSheet.create({
   storeIcon: {
     backgroundColor: "#E8D4C1",
   },
+  resultImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+  },
   iconText: {
     fontSize: 24,
   },
@@ -263,6 +359,15 @@ const styles = StyleSheet.create({
   },
   storeIconText: {
     color: "#7A4C2A",
+  },
+  resultText: {
+    flex: 1,
+  },
+  resultName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#231f20",
+    marginBottom: 6,
   },
   resultMeta: {
     fontSize: 14,
