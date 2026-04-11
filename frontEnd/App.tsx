@@ -1,13 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { StatusBar } from "expo-status-bar";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-  ActivityIndicator,
-  SafeAreaView,
-} from "react-native";
+import React, { useState, useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View, Pressable, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // --- SCREENS ---
 import { LoginScreen } from "./pages/Login";
