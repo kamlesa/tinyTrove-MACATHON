@@ -36,13 +36,13 @@ export function Search({ onStoreSelect, onCommunitySelect, onTreasureSelect }) {
     try {
       const communityQuery = supabase
         .from("communities")
-        .select("id,name,description,photo_url,theme_color,number_of_members");
+        .select("id,name,description,photo_url,banner_url,theme_color,number_of_members");
       const storeQuery = supabase
         .from("stores")
         .select("id,name,address");
       const treasureQuery = supabase
         .from("treasure_tag")
-        .select("id,name,photo");
+        .select("id,name,descriptor,photo");
       const communityTreasuresQuery = supabase
         .from("community_treasures")
         .select("community_id,treasure_id");
@@ -97,6 +97,7 @@ export function Search({ onStoreSelect, onCommunitySelect, onTreasureSelect }) {
         name: community.name,
         description: community.description,
         photo: community.photo_url,
+        banner_url: community.banner_url,
         theme_color: community.theme_color || "#71A5D3",
         number_of_members: community.number_of_members || 0,
         treasures: treasureCountByCommunity[community.id] || 0,
@@ -113,6 +114,7 @@ export function Search({ onStoreSelect, onCommunitySelect, onTreasureSelect }) {
         id: `treasure-${treasure.id}`,
         type: "treasure",
         name: treasure.name,
+        descriptor: treasure.descriptor,
         photo: treasure.photo,
       }));
 
