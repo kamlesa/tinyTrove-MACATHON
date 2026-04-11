@@ -23,7 +23,12 @@ export default function Post({ userId }) {
   // ADDED: State for the image URL since your backend requires it
   const [image, setImage] = useState(""); 
   const [loading, setLoading] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
+  const handleUploadComplete = (url: string) => {
+    // console.log('Image uploaded successfully:', url);
+    setUploadedImageUrl(url);
+  };
   async function submitPost() {
     // Safety check before calling the API
     if (!userId) {
@@ -162,5 +167,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+    fontWeight: "bold",
   },
 });

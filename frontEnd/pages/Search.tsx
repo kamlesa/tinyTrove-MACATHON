@@ -1,12 +1,258 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  FlatList,
+  TextInput,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import { supabase } from "../lib/supabase";
 
-export function Search() {
+const filterOptions = [
+  { key: "all", label: "All" },
+  { key: "treasure", label: "Treasure" },
+  { key: "community", label: "Community" },
+  { key: "store", label: "Store" },
+];
+
+export function Search({ onStoreSelect, onCommunitySelect, onTreasureSelect }) {
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchResults();
+  }, [activeFilter, searchQuery]);
+
+  const fetchResults = async () => {
+    setLoading(true);
+    const sanitizedQuery = searchQuery.trim();
+    const searchPattern = `%${sanitizedQuery.replace(/%/g, "\\%" )}%`;
+
+    try {
+      const communityQuery = supabase
+        .from("communities")
+        .select("id,name,description,photo_url,theme_color,number_of_members");
+      const storeQuery = supabase
+        .from("stores")
+        .select("id,name,address");
+      const treasureQuery = supabase
+        .from("treasure_tag")
+        .select("id,name,photo");
+      const communityTreasuresQuery = supabase
+        .from("community_treasures")
+        .select("community_id,treasure_id");
+
+      if (sanitizedQuery) {
+        communityQuery.or(
+          `name.ilike.${searchPattern},description.ilike.${searchPattern}`
+        );
+        storeQuery.or(
+          `name.ilike.${searchPattern},address.ilike.${searchPattern}`
+        );
+        treasureQuery.ilike("name", searchPattern);
+      }
+
+      const [
+        { data: communityData, error: communityError },
+        { data: storeData, error: storeError },
+        { data: treasureData, error: treasureError },
+        { data: communityTreasuresData, error: communityTreasuresError },
+      ] = await Promise.all([
+        communityQuery,
+        storeQuery,
+        treasureQuery,
+        communityTreasuresQuery,
+      ]);
+
+      if (communityError || storeError || treasureError || communityTreasuresError) {
+        console.error("Supabase search error:", {
+          communityError,
+          storeError,
+          treasureError,
+          communityTreasuresError,
+        });
+        setResults([]);
+        return;
+      }
+
+      const treasureCountByCommunity = (communityTreasuresData || []).reduce(
+        (acc, row) => {
+          const id = row.community_id;
+          acc[id] = (acc[id] || 0) + 1;
+          return acc;
+        },
+        {}
+      );
+
+      //TODO: add function that gets community name of related character
+
+      const communityResults = (communityData || []).map((community) => ({
+        id: `community-${community.id}`,
+        type: "community",
+        name: community.name,
+        description: community.description,
+        photo: community.photo_url,
+        theme_color: community.theme_color || "#71A5D3",
+        number_of_members: community.number_of_members || 0,
+        treasures: treasureCountByCommunity[community.id] || 0,
+      }));
+
+      const storeResults = (storeData || []).map((store) => ({
+        id: `store-${store.id}`,
+        type: "store",
+        name: store.name,
+        address: store.address,
+      }));
+
+      const treasureResults = (treasureData || []).map((treasure) => ({
+        id: `treasure-${treasure.id}`,
+        type: "treasure",
+        name: treasure.name,
+        photo: treasure.photo,
+      }));
+
+      let combined = [];
+      if (activeFilter === "all" || activeFilter === "community") {
+        combined = combined.concat(communityResults);
+      }
+      if (activeFilter === "all" || activeFilter === "store") {
+        combined = combined.concat(storeResults);
+      }
+      if (activeFilter === "all" || activeFilter === "treasure") {
+        combined = combined.concat(treasureResults);
+      }
+
+      setResults(combined);
+    } catch (error) {
+      console.error("Search fetch failed", error);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTypeStyles = (type) => {
+    switch (type) {
+      case "treasure":
+        return {
+          card: styles.treasureCard,
+          iconCircle: styles.treasureIcon,
+          iconText: styles.treasureIconText,
+        };
+      case "community":
+        return {
+          card: styles.communityCard,
+          iconCircle: styles.communityIcon,
+          iconText: styles.communityIconText,
+        };
+      case "store":
+      default:
+        return {
+          card: styles.storeCard,
+          iconCircle: styles.storeIcon,
+          iconText: styles.storeIconText,
+        };
+    }
+  };
+
+  //TODO: update render to show image instead of emoji.
+  const renderResult = ({ item }) => {
+    const typeStyles = getTypeStyles(item.type);
+    const isPressable = item.type === "store" || item.type === "community" || item.type === "treasure";
+    const handlePress = isPressable ? () => {
+      if (item.type === "store") onStoreSelect(item);
+      else if (item.type === "community") onCommunitySelect(item);
+      else if (item.type === "treasure") onTreasureSelect(item);
+    } : undefined;
+
+    const CardComponent = isPressable ? Pressable : View;
+
+    return (
+      <CardComponent
+        style={[styles.resultCard, typeStyles.card]}
+        onPress={handlePress}
+      >
+        <View style={[styles.iconCircle, typeStyles.iconCircle]}>
+          {item.photo ? (
+            <Image source={{ uri: item.photo }} style={styles.resultImage} />
+          ) : (
+            <Text style={[styles.iconText, typeStyles.iconText]}>
+              {item.type === "store" ? "🏪" : "⭐"}
+            </Text>
+          )}
+        </View>
+        <View style={styles.resultText}>
+          <Text style={styles.resultName}>{item.name}</Text>
+          {item.type === "treasure" && (
+            <Text style={styles.resultMeta}>Treasure</Text>
+          )}
+          {item.type === "community" && (
+            <Text style={styles.resultMeta}>
+              {item.members} members · {item.treasures} treasures
+            </Text>
+          )}
+          {item.type === "store" && (
+            <Text style={styles.resultMeta}>{item.address}</Text>
+          )}
+        </View>
+      </CardComponent>
+    );
+  };
+
   return (
     <View style={styles.page}>
-      <View style={styles.center}>
-        <Text style={styles.title}>Searc Page</Text>
+      <Text style={styles.headerTitle}>Search</Text>
+
+      <TextInput
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder="Search treasures, communities, stores"
+        placeholderTextColor="#aaa"
+        style={styles.searchInput}
+      />
+
+      <View style={styles.filterRow}>
+        {filterOptions.map((option) => (
+          <Pressable
+            key={option.key}
+            style={[
+              styles.filterButton,
+              activeFilter === option.key && styles.filterButtonActive,
+            ]}
+            onPress={() => setActiveFilter(option.key)}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                activeFilter === option.key && styles.filterTextActive,
+              ]}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        ))}
       </View>
+
+      {loading ? (
+        <View style={styles.loadingWrapper}>
+          <ActivityIndicator size="large" color="#71A5D3" />
+        </View>
+      ) : (
+        <FlatList
+          data={results}
+          keyExtractor={(item) => item.id}
+          renderItem={renderResult}
+          contentContainerStyle={styles.resultsList}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No results found.</Text>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -14,13 +260,138 @@ export function Search() {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    position: "relative",
+    backgroundColor: "#fffbf5",
+    paddingHorizontal: 16,
+    paddingTop: 24,
   },
-  center: {
-    paddingTop: 40,
-    alignItems: "center", // 👈 replaces textAlign
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#2e1d14",
+    marginBottom: 16,
   },
-  title: {
-    fontSize: 30,
+  searchInput: {
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#e8d8d0",
+    marginBottom: 16,
+    color: "#2e1d14",
+  },
+  filterRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 20,
+  },
+  filterButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#e5c4d6",
+    backgroundColor: "#fff",
+  },
+  filterButtonActive: {
+    backgroundColor: "#ffdaec",
+    borderColor: "#ff8fab",
+  },
+  filterText: {
+    color: "#7a6b78",
+    fontWeight: "600",
+  },
+  filterTextActive: {
+    color: "#d9417d",
+  },
+  loadingWrapper: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  resultsList: {
+    paddingBottom: 40,
+  },
+  resultCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  treasureCard: {
+    backgroundColor: "#FFF8F0",
+    borderLeftWidth: 4,
+    borderLeftColor: "#ff8fab",
+  },
+  communityCard: {
+    backgroundColor: "#E8F2FF",
+    borderLeftWidth: 4,
+    borderLeftColor: "#71A5D3",
+  },
+  storeCard: {
+    backgroundColor: "#F5E5D8",
+    borderLeftWidth: 4,
+    borderLeftColor: "#A47552",
+  },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+  treasureIcon: {
+    backgroundColor: "#FFE8EE",
+  },
+  communityIcon: {
+    backgroundColor: "#DCE8F8",
+  },
+  storeIcon: {
+    backgroundColor: "#E8D4C1",
+  },
+  resultImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+  },
+  iconText: {
+    fontSize: 24,
+  },
+  treasureIconText: {
+    color: "#D9417D",
+  },
+  communityIconText: {
+    color: "#2B5B8A",
+  },
+  storeIconText: {
+    color: "#7A4C2A",
+  },
+  resultText: {
+    flex: 1,
+  },
+  resultName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#231f20",
+    marginBottom: 6,
+  },
+  resultMeta: {
+    fontSize: 14,
+    color: "#6e5a68",
+  },
+  emptyText: {
+    marginTop: 30,
+    textAlign: "center",
+    color: "#7a6b78",
+    fontSize: 16,
   },
 });

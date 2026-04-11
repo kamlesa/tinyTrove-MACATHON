@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, ActivityIndicator, Pressable, Alert } from 'react-native';
 import { authApi } from '../lib/authApi';
 
-export function ProfileScreen({ userId, onLogout }) {
+export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelect }) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -101,20 +101,27 @@ export function ProfileScreen({ userId, onLogout }) {
           data={posts}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.postCard}>
-              <Image 
-                source={{ uri: item.photo_url || 'https://via.placeholder.com/100' }} 
-                style={styles.postImage} 
-              />
-              <View style={styles.postInfo}>
-                <Text style={styles.postName}>{item.caption}</Text>
-                <Text style={styles.postDesc}>{item.location}</Text>
+            <Pressable
+              style={[styles.resultCard, styles.postResultCard]}
+              onPress={() => onPostSelect?.(item)}
+            >
+              <View style={[styles.iconCircle, styles.postIcon]}> 
+                {item.photo_url ? (
+                  <Image source={{ uri: item.photo_url }} style={styles.resultImage} />
+                ) : (
+                  <Text style={[styles.iconText, styles.postIconText]}>📸</Text>
+                )}
               </View>
-            </View>
+              <View style={styles.resultText}>
+                <Text style={styles.resultName}>{item.caption || 'Untitled post'}</Text>
+                <Text style={styles.resultMeta}>{item.location || 'No location provided'}</Text>
+              </View>
+            </Pressable>
           )}
           ListEmptyComponent={
             <Text style={styles.emptyText}>No posts yet!</Text>
           }
+          contentContainerStyle={styles.resultsList}
         />
       )}
 
@@ -124,21 +131,28 @@ export function ProfileScreen({ userId, onLogout }) {
           data={communities}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.communityCard}>
-              <Image 
-                source={{ uri: item.cover_image_url || 'https://via.placeholder.com/100' }} 
-                style={styles.communityImage} 
-              />
-              <View style={styles.communityInfo}>
-                <Text style={styles.communityName}>{item.name}</Text>
-                <Text style={styles.communityDesc}>{item.description}</Text>
-                <Text style={styles.communityMembers}>{item.member_count || 0} members</Text>
+            <Pressable
+              style={[styles.resultCard, styles.communityCard]}
+              onPress={() => onCommunitySelect?.(item)}
+            >
+              <View style={[styles.iconCircle, styles.communityIcon]}>
+                {item.cover_image_url ? (
+                  <Image source={{ uri: item.cover_image_url }} style={styles.resultImage} />
+                ) : (
+                  <Text style={[styles.iconText, styles.communityIconText]}>👥</Text>
+                )}
               </View>
-            </View>
+              <View style={styles.resultText}>
+                <Text style={styles.resultName}>{item.name}</Text>
+                <Text style={styles.resultMeta}>{item.description || 'Community details'}</Text>
+                <Text style={styles.resultMeta}>{item.member_count || 0} members</Text>
+              </View>
+            </Pressable>
           )}
           ListEmptyComponent={
             <Text style={styles.emptyText}>No communities yet!</Text>
           }
+          contentContainerStyle={styles.resultsList}
         />
       )}
       
@@ -166,17 +180,73 @@ const styles = StyleSheet.create({
   tabText: { fontSize: 14, fontWeight: '600', color: '#999' },
   activeTabText: { color: '#FF8FAB' },
   gridItem: { flex: 1/3, aspectRatio: 1, padding: 1 },
-  communityCard: { flexDirection: 'row', padding: 12, borderBottomWidth: 1, borderBottomColor: '#eee', alignItems: 'center' },
-  communityImage: { width: 60, height: 60, borderRadius: 8, marginRight: 12, backgroundColor: '#f0f0f0' },
-  communityInfo: { flex: 1 },
-  communityName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  communityDesc: { fontSize: 12, color: '#666', marginTop: 2 },
-  communityMembers: { fontSize: 11, color: '#999', marginTop: 4 },
-  postCard: { flexDirection: 'row', padding: 12, borderBottomWidth: 1, borderBottomColor: '#eee', alignItems: 'center' },
-  postImage: { width: 60, height: 60, borderRadius: 8, marginRight: 12, backgroundColor: '#f0f0f0' },
-  postInfo: { flex: 1 },
-  postName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  postDesc: { fontSize: 12, color: '#666', marginTop: 2 },
+  resultCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 3,
+    backgroundColor: '#fff',
+  },
+  postResultCard: {
+    backgroundColor: '#F5E5D8',
+    borderLeftWidth: 4,
+    borderLeftColor: '#A47552',
+  },
+  communityCard: {
+    backgroundColor: '#E8F2FF',
+    borderLeftWidth: 4,
+    borderLeftColor: '#71A5D3',
+  },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  postIcon: {
+    backgroundColor: '#E8D4C1',
+  },
+  communityIcon: {
+    backgroundColor: '#DCE8F8',
+  },
+  resultImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+  },
+  iconText: {
+    fontSize: 24,
+  },
+  postIconText: {
+    color: '#7A4C2A',
+  },
+  communityIconText: {
+    color: '#2B5B8A',
+  },
+  resultText: {
+    flex: 1,
+  },
+  resultName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#231f20',
+    marginBottom: 6,
+  },
+  resultMeta: {
+    fontSize: 14,
+    color: '#6e5a68',
+  },
+  resultsList: {
+    paddingBottom: 40,
+  },
   emptyText: { textAlign: 'center', marginTop: 50, color: '#999' },
   signOutButton: { margin: 20, padding: 15, borderRadius: 8, backgroundColor: '#f5f5f5', alignItems: 'center' },
   signOutText: { color: '#ff4d4d', fontWeight: 'bold' }
