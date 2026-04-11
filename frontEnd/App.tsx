@@ -6,8 +6,8 @@ import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView } fr
 import { LoginScreen } from './pages/Login';
 import { ProfileScreen } from './pages/Profile';
 import { HomeScreen } from './pages/Home';
-import { Map } from './pages/Map';
-import { Post } from './pages/Post';
+import Map from './pages/Map'
+import Post from './pages/Post';
 import { Search } from './pages/Search';
 
 // --- NAVIGATION CONFIG ---
@@ -58,12 +58,18 @@ export default function App() {
     return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
+  const locations = [ //TODO: fetch locations via treasure/database
+    { id: '1', address: 'Level3/258 Little Bourke St, Melbourne VIC 3000', title: 'Melridai' },
+    { id: '2', address: 'Kidstuff Malvern', title: 'Kidstuff Malvern' },
+    { id: '3', address: '21 Chancellors Walk, Clayton VIC 3168', title: 'Monash Kuromi Store' },
+  ];
+
   // --- MAIN APP: If logged in, show Navigation ---
   const renderContent = () => {
     switch (activePage) {
       case 'home': return <HomeScreen onLogout={handleLogout} />;
       case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} />;
-      case 'map': return <Map />;
+      case 'map': return <Map locations={locations}/>;
       case 'post': return <Post />;
       case 'search': return <Search />;
       default: return <HomeScreen onLogout={handleLogout} />;
