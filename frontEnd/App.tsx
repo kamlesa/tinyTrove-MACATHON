@@ -50,13 +50,6 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text>MACATHON 2026</Text>
-      <Text>React + Expo Go starter app</Text>
-
-      <Pressable style={styles.button} onPress={() => addUser("data")}>
-        <Text style={styles.buttonText}>Tap me</Text>
-      </Pressable>
-
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.content}>{renderPage()}</View>
