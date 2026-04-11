@@ -19,12 +19,31 @@ export const createPost = async (req, res) => {
           user_id: userId, // Corrected: Links the post to the user
           photo_url: image,
           caption: description,
-          treasure_tag: tags,
           location: location,
         },
       ])
       .select();
 
+    console.log("POSTDATA", postData);
+
+    if (tags?.length) {
+      const tagRows = tags.map(
+        (tag) => (
+          console.log("postdata", postData[0].id),
+          console.log("tag", tag.id),
+          {
+            post_id: postData[0].id,
+            tag_id: tag.id,
+          }
+        )
+      );
+
+      const { error: tagError } = await supabase
+        .from("post_tags")
+        .insert(tagRows);
+
+      if (tagError) throw tagError;
+    }
     // 4. Check for database errors specific to THIS query
     if (postError) {
       console.error("Database Error:", postError);
