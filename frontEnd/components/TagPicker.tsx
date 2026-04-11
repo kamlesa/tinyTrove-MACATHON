@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,24 +8,49 @@ import {
   FlatList,
   StyleSheet,
 } from "react-native";
+import { supabase } from "../lib/supabase";
 
-interface TagPickerProps {
-  addTag: (tag: string) => void;
-  removeTag: (tag: string) => void;
+export interface TagPickerProps {
+  addTag: (tag: TagProps) => void;
+  removeTag: (tag: TagProps) => void;
+}
+
+export interface TagProps {
+  id: string;
+  name: string;
+  photo: string;
 }
 
 export default function TagPicker({ addTag, removeTag }: TagPickerProps) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<TagProps[]>([]);
+  const [allTags, setAllTags] = useState<TagProps[]>([]);
   const [query, setQuery] = useState("");
 
   const mockTags = ["Kuromi", "Hello Kitty", "Pikachu"];
 
-  const filtered = mockTags.filter((item) =>
-    item.toLowerCase().includes(query.toLowerCase())
+  useEffect(() => {
+    async function fetchTags() {
+      const { data, error } = await supabase
+        .from("treasure_tag")
+        .select("id,name,photo");
+
+      if (!error) setAllTags(data || []);
+    }
+
+    fetchTags();
+  }, []);
+  const treasureQuery = supabase.from("treasure_tag").select("id,name,photo");
+
+  // const filtered = mockTags.filter((item) =>
+  //  item.toLowerCase().includes(query.toLowerCase())
+  //);
+
+  const filtered = allTags.filter((item) =>
+    item.name.toLowerCase().includes(query.toLowerCase())
   );
 
-  const handleAddTag = (tag: string) => {
+  const handleAddTag = (tag: TagProps) => {
     if (!tags.includes(tag)) {
       const updated = [...tags, tag];
       setTags(updated);
@@ -33,8 +58,8 @@ export default function TagPicker({ addTag, removeTag }: TagPickerProps) {
     }
   };
 
-  const handleRemoveTag = (tag: string) => {
-    const updated = tags.filter((t) => t !== tag);
+  const handleRemoveTag = (tag: TagProps) => {
+    const updated = tags.filter((t) => t.id !== tag.id);
     setTags(updated);
     removeTag(tag);
   };
@@ -65,8 +90,8 @@ export default function TagPicker({ addTag, removeTag }: TagPickerProps) {
           {tags.length > 0 && (
             <View style={styles.selectedBox}>
               {tags.map((tag) => (
-                <View key={tag} style={styles.tag}>
-                  <Text style={styles.tagText}>{tag}</Text>
+                <View key={tag.id} style={styles.tag}>
+                  <Text style={styles.tagText}>{tag.name}</Text>
 
                   <Pressable onPress={() => handleRemoveTag(tag)}>
                     <Text style={styles.remove}>×</Text>
@@ -79,10 +104,10 @@ export default function TagPicker({ addTag, removeTag }: TagPickerProps) {
           {/* LIST */}
           <FlatList
             data={filtered}
-            keyExtractor={(item) => item}
+            keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <Pressable style={styles.item} onPress={() => handleAddTag(item)}>
-                <Text>{item}</Text>
+                <Text>{item.name}</Text>
               </Pressable>
             )}
           />

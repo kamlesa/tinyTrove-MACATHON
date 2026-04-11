@@ -7,21 +7,22 @@ import {
   Pressable,
   Alert,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import LocationPicker from "../components/LocationPicker";
-import TagPicker from "../components/TagPicker";
+import TagPicker, { TagProps } from "../components/TagPicker";
 import { postApi } from "../lib/postApi";
+import ImageUploader from "../components/ImageUpload";
 
 // If using TypeScript (.tsx), use: export default function Post({ userId }: { userId: string })
 export default function Post({ userId }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState(null);
-  const [tags, setTags] = useState([]);
-  
+  const [tags, setTags] = useState<TagProps[]>([]);
+
   // ADDED: State for the image URL since your backend requires it
-  const [image, setImage] = useState(""); 
+  const [image, setImage] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
@@ -38,23 +39,24 @@ export default function Post({ userId }) {
 
     setLoading(true);
     try {
+      //console.log(tags, image);
       // THE FIX: We are now passing exactly what the backend expects!
       const response = await postApi.createPost(
-        userId,       // <-- CRITICAL FIX
-        image,        // <-- CRITICAL FIX
+        userId, // <-- CRITICAL FIX
+        image, // <-- CRITICAL FIX
         description,
-        location
+        location,
+        tags
       );
-      
+
       Alert.alert("Success", "Post Created!");
-      
+
       // Clear the form after success
       setTitle("");
       setDescription("");
       setImage("");
       setTags([]);
       setLocation(null);
-
     } catch (error) {
       // Axios errors hide the message in error.response.data
       const errorMsg = error.response?.data?.error || error.message;
@@ -69,14 +71,10 @@ export default function Post({ userId }) {
       <View style={styles.content}>
         <Text style={styles.title}>New Post</Text>
 
-        <Text style={styles.label}>Title *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter post title"
-          placeholderTextColor="#555"
-          value={title}
-          onChangeText={setTitle}
-          editable={!loading}
+        <ImageUploader
+          folderName={userId || "anonymous"}
+          bucketName="Posts"
+          onUploadComplete={handleUploadComplete}
         />
 
         <Text style={styles.label}>Description</Text>
@@ -92,17 +90,19 @@ export default function Post({ userId }) {
         />
 
         <LocationPicker chooseLocation={setLocation} />
-        
+
         {/* Fixed the filter bug here */}
         <TagPicker
-          addTag={(newItem) => setTags([...tags, newItem])}
-          removeTag={(itemToRemove) => 
+          addTag={(newItem) => {
+            setTags([...tags, newItem]);
+          }}
+          removeTag={(itemToRemove) =>
             setTags(tags.filter((t) => t !== itemToRemove))
           }
         />
 
-        <Pressable 
-          style={[styles.button, loading && styles.buttonDisabled]} 
+        <Pressable
+          style={[styles.button, loading && styles.buttonDisabled]}
           onPress={submitPost}
           disabled={loading}
         >

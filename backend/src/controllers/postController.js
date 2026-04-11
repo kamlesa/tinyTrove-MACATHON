@@ -10,6 +10,7 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ error: "User ID is required" });
     }
 
+    console.log(req.body);
     // 3. Insert into the database
     const { data: postData, error: postError } = await supabase
       .from("posts")
@@ -34,7 +35,6 @@ export const createPost = async (req, res) => {
 
     // 5. Send the newly created post data back to the app
     res.status(201).json(postData);
-
   } catch (err) {
     console.error("Server Error:", err);
     res.status(500).json({ error: err.message });
