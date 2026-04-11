@@ -24,8 +24,7 @@ export const createPost = async (req, res) => {
       ])
       .select();
 
-    console.log("POSTDATA", postData);
-
+    console.log(tags);
     if (tags?.length) {
       const tagRows = tags.map(
         (tag) => (
