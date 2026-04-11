@@ -18,7 +18,7 @@ const filterOptions = [
   { key: "store", label: "Store" },
 ];
 
-export function Search() {
+export function Search({ onStoreSelect, onCommunitySelect, onTreasureSelect }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -36,7 +36,7 @@ export function Search() {
     try {
       const communityQuery = supabase
         .from("communities")
-        .select("id,name,description,photo_url,theme_color");
+        .select("id,name,description,photo_url,theme_color,number_of_members");
       const storeQuery = supabase
         .from("stores")
         .select("id,name,address");
@@ -89,6 +89,8 @@ export function Search() {
         {}
       );
 
+      //TODO: add function that gets community name of related character
+
       const communityResults = (communityData || []).map((community) => ({
         id: `community-${community.id}`,
         type: "community",
@@ -96,7 +98,7 @@ export function Search() {
         description: community.description,
         photo: community.photo_url,
         theme_color: community.theme_color || "#71A5D3",
-        members: community.members || 0,
+        number_of_members: community.number_of_members || 0,
         treasures: treasureCountByCommunity[community.id] || 0,
       }));
 
@@ -158,10 +160,23 @@ export function Search() {
     }
   };
 
+  //TODO: update render to show image instead of emoji.
   const renderResult = ({ item }) => {
     const typeStyles = getTypeStyles(item.type);
+    const isPressable = item.type === "store" || item.type === "community" || item.type === "treasure";
+    const handlePress = isPressable ? () => {
+      if (item.type === "store") onStoreSelect(item);
+      else if (item.type === "community") onCommunitySelect(item);
+      else if (item.type === "treasure") onTreasureSelect(item);
+    } : undefined;
+
+    const CardComponent = isPressable ? Pressable : View;
+
     return (
-      <View style={[styles.resultCard, typeStyles.card]}>
+      <CardComponent
+        style={[styles.resultCard, typeStyles.card]}
+        onPress={handlePress}
+      >
         <View style={[styles.iconCircle, typeStyles.iconCircle]}>
           {item.photo ? (
             <Image source={{ uri: item.photo }} style={styles.resultImage} />
@@ -185,7 +200,7 @@ export function Search() {
             <Text style={styles.resultMeta}>{item.address}</Text>
           )}
         </View>
-      </View>
+      </CardComponent>
     );
   };
 
