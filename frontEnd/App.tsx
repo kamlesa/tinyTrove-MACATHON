@@ -50,6 +50,8 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+      </View>
       <Text>MACATHON 2026</Text>
       <Text>React + Expo Go starter app</Text>
 
@@ -80,6 +82,13 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  header: {
+    height: 50,
+    width: "100%",
+    backgroundColor: "#211A19",
+    borderBottomWidth: 1,
+    borderColor: "#211A19",
+  },
   container: {
     flex: 1,
   },

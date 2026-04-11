@@ -1,57 +1,70 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
-import Footer from "../Components/footer";
+import { View, Text, StyleSheet, Image, ImageSourcePropType,} from "react-native";
 import Button from "../Components/button";
 import ImageGrid from "../Components/imageGrid";
 
-export default function Home() {
+interface PostImages {
+  id: string;
+  source: ImageSourcePropType;
+  onClick?: () => void;
+}
+
+interface TreasureProps {
+  characterImageSource?: ImageSourcePropType;
+  groupImageSource?: ImageSourcePropType;
+  Title?: string;
+  Description?: string;
+  Group?: string;
+  images?: PostImages[];
+}
+
+export default function Treasure({images = [
+          { id: "1", source: require("./Image1.png") },
+          { id: "2", source: require("./Image1.png") },
+          { id: "3", source: require("./Image1.png") },
+          { id: "4", source: require("./Image1.png") },
+          { id: "5", source: require("./Image1.png") },
+          { id: "6", source: require("./Image1.png") },
+        ], characterImageSource= require("./Image1.png"), groupImageSource = require("./Image1.png"), Title = "Title", Description = "Description", Group = "group",}: TreasureProps) {
+  
   return (
     <View style={styles.page}>
+
       <View style={styles.topBar}>
-        <Image source={require("./Image1.png")} />
-        <Text style={styles.title}>Kuromi</Text>
+
+        <Image source={groupImageSource} style={styles.groupImage} />
+        <Text style={styles.title}>{Group}</Text>
       </View>
 
-        
-    <View style={styles.profile}>
-      <Image source={require("./Image1.png")} style={styles.image} />
+      <View style={styles.profile}>
+        <Image source={characterImageSource} style={styles.image} />
 
-      <View style={styles.textBox}>
-        <Text style={styles.name}>Kuromi</Text>
-        <Text style={styles.description}>
-          Kuromi is a mischievous bunny blah blah
-        </Text>
+        <View style={styles.textBox}>
+          <Text style={styles.name}>{Title}</Text>
+          <Text style={styles.description}>{Description}</Text>
+        </View>
+
+      </View>
+
+      <View style={styles.middle}>
+
+        <View style={styles.buttons}>
+          <Button widthSize="medium" heightSize="small" onClick={() => {}}>
+            Find
+          </Button>
+          <Button widthSize="medium" heightSize="small" onClick={() => {}}>
+            Filter
+          </Button>
+        </View>
+
 
 
       </View>
 
-      
+      <View style={styles.imageGrid}>
 
-    </View>
-    
-    <View style={styles.middle}>
-      <View style={styles.buttons}>
-        <Button widthSize="medium" heightSize="small" onClick={() => {}}>
-          Find
-        </Button>
-        <Button widthSize="medium" heightSize="small" onClick={() => {}}>
-          Filter
-        </Button>
+        <ImageGrid images={images} />
       </View>
-    </View>
-
-    <View style={styles.imageGrid}>
-      <ImageGrid
-        images={[
-          { id: "1", source: require("./Image1.png"), onClick: () =>{}},
-          { id: "2", source: require("./Image1.png"), onClick: () =>{}},
-          { id: "3", source: require("./Image1.png"), onClick: () =>{}},
-          { id: "4", source: require("./Image1.png"), onClick: () =>{}},
-          { id: "5", source: require("./Image1.png"), onClick: () =>{}},
-          { id: "6", source: require("./Image1.png"), onClick: () =>{}},
-        ]}
-      />
-    </View>
 
     </View>
   );
@@ -61,10 +74,6 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: "#FFF8F0",
-  },
-  title: {
-    fontSize: 20,
-    marginLeft: 10,
   },
   topBar: {
     width: "100%",
@@ -78,9 +87,15 @@ const styles = StyleSheet.create({
     paddingRight: 0,
     backgroundColor: "#FFF0C9",
   },
-  middle: {
-    alignItems: "center",
-    },
+  groupImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  title: {
+    fontSize: 20,
+    marginLeft: 10,
+  },
   profile: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -104,6 +119,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 4,
   },
+  middle: {
+    alignItems: "center",
+  },
   buttons: {
     flexDirection: "row",
     marginTop: 9,
@@ -114,6 +132,5 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     alignItems: "center",
     backgroundColor: "#FFF8F0",
-
-  }
+  },
 });
