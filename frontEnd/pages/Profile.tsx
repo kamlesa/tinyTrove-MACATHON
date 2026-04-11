@@ -29,8 +29,6 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
       setProfile(profileData);
       setPosts(postsData || []);
       setCommunities(communitiesData || []);
-      // console.log('Posts fetched:', postsData);
-      // console.log('Communities fetched:', communitiesData);
     } catch (error) {
       Alert.alert('Error', error.response?.data?.error || error.message);
       console.error('Error fetching profile:', error);
