@@ -1,86 +1,136 @@
-import { useState } from "react";
-import { Text, View, Pressable, StatusBar, StyleSheet } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView } from 'react-native';
 
-import { useUserAuthStore } from "./stores/useUserAuthStore";
+// --- SCREENS ---
+import { LoginScreen } from './pages/Login';
+import { ProfileScreen } from './pages/Profile';
+import { HomeScreen } from './pages/Home';
+import { Map } from './pages/Map';
+import { Post } from './pages/Post';
+import { Search } from './pages/Search';
 
-import Home from "./pages/Home";
-import Map from "./pages/Map";
-import Profile from "./pages/Profile";
-import Post from "./pages/Post";
-import Search from "./pages/Search";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-
-type Page = "home" | "map" | "profile" | "post" | "search" | "login" | "signup";
-
-const pages: { key: Page; label: string }[] = [
+// --- NAVIGATION CONFIG ---
+const pages = [
   { key: "home", label: "Home" },
   { key: "map", label: "Map" },
-  { key: "profile", label: "Profile" },
   { key: "post", label: "Post" },
   { key: "search", label: "Search" },
-  { key: "login", label: "Login" },
-  { key: "signup", label: "Signup" },
+  { key: "profile", label: "Profile" },
 ];
 
 export default function App() {
-  const [activePage, setActivePage] = useState<Page>("login");
-  const { addUser } = useUserAuthStore();
+  // Auth State
+  const [session, setSession] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(false);
+  
+  // Navigation State
+  const [activePage, setActivePage] = useState("home");
 
-  const renderPage = () => {
+  useEffect(() => {
+    // TODO: Check for stored auth token and set session
+    // For now, user starts logged out
+    setIsInitializing(false);
+  }, []);
+
+  const handleLogout = () => {
+    setSession(null);
+    setUserId(null);
+  };
+
+  const handleLoginSuccess = (user) => {
+    setSession(user);
+    setUserId(user?.id);
+  };
+
+  // --- LOADING STATE ---
+  if (isInitializing) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#FF8FAB" />
+      </View>
+    );
+  }
+
+  // --- AUTH GATE: If no session, show Login ---
+  if (!session) {
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // --- MAIN APP: If logged in, show Navigation ---
+  const renderContent = () => {
     switch (activePage) {
-      case "home":
-        return <Home />;
-      case "map":
-        return <Map />;
-      case "profile":
-        return <Profile />;
-      case "post":
-        return <Post />;
-      case "search":
-        return <Search />;
-      case "login":
-        return <Login />;
-      case "signup":
-        return <Signup />;
-      default:
-        return <Text>Unknown Page</Text>;
+      case 'home': return <HomeScreen onLogout={handleLogout} />;
+      case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} />;
+      case 'map': return <Map />;
+      case 'post': return <Post />;
+      case 'search': return <Search />;
+      default: return <HomeScreen onLogout={handleLogout} />;
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text>MACATHON 2026</Text>
-      <Text>React + Expo Go starter app</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="auto" />
+      
+      {/* Top Header */}
+      <View style={styles.header}>
+        <Text style={styles.appTitle}>tinyTrove</Text>
+      </View>
 
-      <Pressable style={styles.button} onPress={() => addUser("data")}>
-        <Text style={styles.buttonText}>Tap me</Text>
-      </Pressable>
+      {/* Main Page Content */}
+      <View style={styles.mainContent}>
+        {renderContent()}
+      </View>
 
-      <StatusBar barStyle="dark-content" />
-
-      <View style={styles.content}>{renderPage()}</View>
-
+      {/* Navigation Footer */}
       <View style={styles.footer}>
         {pages.map((page) => (
           <Pressable
             key={page.key}
             style={[
-              styles.button,
+              styles.navButton,
               activePage === page.key && styles.activeButton,
             ]}
             onPress={() => setActivePage(page.key)}
           >
-            <Text style={styles.buttonText}>{page.label}</Text>
+            <Text style={[
+              styles.navButtonText,
+              activePage === page.key && styles.activeButtonText
+            ]}>
+              {page.label}
+            </Text>
           </Pressable>
         ))}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  header: {
+    paddingTop: 20,
+    paddingBottom: 10,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  appTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: '#FF8FAB',
+  },
+  mainContent: {
     flex: 1,
   },
   content: {
@@ -93,18 +143,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     paddingVertical: 14,
-    paddingHorizontal: 8,
     borderTopWidth: 1,
+    borderTopColor: '#eee',
+    backgroundColor: '#fff',
   },
-  button: {
-    paddingVertical: 10,
+  navButton: {
+    paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 10,
   },
   activeButton: {
-    backgroundColor: "#ddd",
+    backgroundColor: "#FFE5EC", // Light pink highlight
   },
-  buttonText: {
+  navButtonText: {
     fontWeight: "600",
+    color: "#666",
+    fontSize: 12,
+  },
+  activeButtonText: {
+    color: "#FF8FAB", // Main pink
   },
 });
