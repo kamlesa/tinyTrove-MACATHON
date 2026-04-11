@@ -29,6 +29,7 @@ const colors = {
   lightGray: "#D4CFBE",
 };
 
+const mapsAPIKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 const mapHTML = `
 <!DOCTYPE html>
 <html>
@@ -36,7 +37,7 @@ const mapHTML = `
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhCrEsAMyzkWJMzVmMQKg5yhKidiIBleE&libraries=marker"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=`+mapsAPIKey+`&libraries=marker"></script>
     <style>
       html, body { height: 100%; margin: 0; padding: 0; }
       #container { display: flex; flex-direction: column; height: 100%; }

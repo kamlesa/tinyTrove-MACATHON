@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, ActivityIndicator, Pressable, Alert } from 'react-native';
 import { authApi } from '../lib/authApi';
+import ImageUploader from '../components/ImageUpload';
+import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '../lib/supabase'
 
 export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelect }) {
   const [loading, setLoading] = useState(true);
@@ -8,7 +11,11 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
   const [posts, setPosts] = useState([]);
   const [communities, setCommunities] = useState([]);
   const [activeTab, setActiveTab] = useState('posts'); // 'posts' or 'communities'
-
+  const [refreshKey, setRefreshKey] = useState(0);
+  const folderName = userId
+  const bucketName = "ProfilePictures"
+  const [uploading, setUploading] = useState(false);
+  
   useEffect(() => {
     if (userId) {
       getProfileData();
@@ -56,14 +63,105 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
     );
   }
 
+  const handleUploadComplete = (url: string) => {
+    console.log('Image uploaded successfully:', url);
+    //TODO: UPDATE DATABASE
+  };
+
+  
+  const requestPermission = async () => {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission required',
+          'We need access to your photos to upload an image.'
+        );
+        return false;
+      }
+      return true;
+  };
+
+  const pickAndUploadImage = async () => {
+      const hasPermission = await requestPermission();
+      if (!hasPermission) return;
+  
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'], 
+        allowsEditing: true,
+        quality: 0.8,
+      });
+  
+      if (result.canceled) return;
+  
+      const uri = result.assets[0].uri;
+      // console.log('Image URI:', uri);
+  
+      try {
+        setUploading(true);
+  
+        const response = await fetch(uri);
+        const arrayBuffer = await response.arrayBuffer();
+  
+        const filePath = `${folderName}/${Date.now()}.jpg`;
+  
+        const { error } = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, arrayBuffer, {
+            contentType: 'image/jpeg',
+          });
+  
+        if (error) throw error;
+  
+        const { data } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath);
+  
+        const publicUrl = data.publicUrl;
+        updateProfilePicture(userId, publicUrl)
+        console.log(publicUrl)
+      } catch (err) {
+        console.error('Upload error:', err);
+        Alert.alert(
+          'Upload failed',
+          'Check your internet connection or Supabase setup.'
+        );
+      } finally {
+        setUploading(false);
+      }
+  };
+
+  const updateProfilePicture = async (userId: string, photo_url: string) => {
+  try {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: photo_url })
+      .eq("id", userId);
+
+    if (error) throw error;
+
+    console.log("Profile picture updated");
+    // setRefreshKey(prev => prev + 1);
+    getProfileData();
+  } catch (err) {
+    console.error(err);
+  }
+};
+
   return (
     <View style={styles.container}>
       {/* Header Section */}
       <View style={styles.header}>
         <Image 
+          key={refreshKey}
           source={{ uri: profile?.avatar_url || 'https://via.placeholder.com/100' }} 
           style={styles.avatar} 
         />
+        {/* <ImageUploader folderName={userId || "anonymous"}
+          bucketName="ProfilePictures"
+          onUploadComplete={handleUploadComplete}></ImageUploader> */}
+        <Pressable onPress={pickAndUploadImage}><Text>Edit Profile</Text></Pressable>
         <Text style={styles.displayName}>{profile?.display_name || 'Collector'}</Text>
         <Text style={styles.username}>@{profile?.username}</Text>
         
@@ -100,28 +198,22 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
         <FlatList
           data={posts}
           keyExtractor={(item) => item.id}
+          numColumns={3}
           renderItem={({ item }) => (
             <Pressable
-              style={[styles.resultCard, styles.postResultCard]}
+              style={styles.gridItem}
               onPress={() => onPostSelect?.(item)}
             >
-              <View style={[styles.iconCircle, styles.postIcon]}> 
-                {item.photo_url ? (
-                  <Image source={{ uri: item.photo_url }} style={styles.resultImage} />
-                ) : (
-                  <Text style={[styles.iconText, styles.postIconText]}>📸</Text>
-                )}
-              </View>
-              <View style={styles.resultText}>
-                <Text style={styles.resultName}>{item.caption || 'Untitled post'}</Text>
-                <Text style={styles.resultMeta}>{item.location || 'No location provided'}</Text>
-              </View>
+              <Image 
+                source={{ uri: item.photo_url || 'https://via.placeholder.com/100' }} 
+                style={styles.gridImage} 
+              />
             </Pressable>
           )}
           ListEmptyComponent={
             <Text style={styles.emptyText}>No posts yet!</Text>
           }
-          contentContainerStyle={styles.resultsList}
+          contentContainerStyle={styles.gridContainer}
         />
       )}
 
@@ -180,6 +272,8 @@ const styles = StyleSheet.create({
   tabText: { fontSize: 14, fontWeight: '600', color: '#999' },
   activeTabText: { color: '#FF8FAB' },
   gridItem: { flex: 1/3, aspectRatio: 1, padding: 1 },
+  gridImage: { width: '100%', height: '100%', borderRadius: 8 },
+  gridContainer: { padding: 10 },
   resultCard: {
     flexDirection: 'row',
     alignItems: 'center',
