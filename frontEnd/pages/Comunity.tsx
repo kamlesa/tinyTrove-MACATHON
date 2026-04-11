@@ -158,5 +158,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
+  imageGrid: {
+    paddingTop: 10,
+    alignItems: "center",
+    backgroundColor: "#FFF8F0",
+  },
 
   });
