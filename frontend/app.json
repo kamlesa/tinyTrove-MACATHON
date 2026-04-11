@@ -11,7 +11,8 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Allow MACATHON 2026 to access your location"
-        }
+        },
+         "expo-secure-store"
       ]
     ]
   }
