@@ -22,7 +22,7 @@ import TreasureDetail from "./pages/TreasureDetail";
 import PostDetail from "./pages/PostDetail";
 
 // --- COMPONENTS ---
-import Button from './Components/button';
+import Button from './components/button';
 // --- NAVIGATION CONFIG ---
 const pages = [
   { key: "home", label: "Home" },
@@ -200,7 +200,7 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      {/* Top Header */}
+
       <View style={styles.header}>
         {showBackButton && (
           <View style={styles.backButtonWrapper}>

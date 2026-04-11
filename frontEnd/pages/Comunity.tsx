@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, ImageSourcePropType, ScrollView, Pressable} from "react-native";
-import Button from "../Components/button";
-import ImageGrid from "../Components/imageGrid";
+import Button from "../components/button";
+import ImageGrid from "../components/imageGrid";
 
 interface TreasureImages {
   id: string;
