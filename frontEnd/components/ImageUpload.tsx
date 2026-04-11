@@ -6,15 +6,19 @@ import {
   Image,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '../lib/supabase'
 
 type Props = {
-  onImageSelected?: (uri: string) => void;
+  userId: string;
+  onUploadComplete?: (url: string) => void;
 };
 
-const ImageUploader: React.FC<Props> = ({ onImageSelected }) => {
+const ImageUploader: React.FC<Props> = ({ userId, onUploadComplete }) => {
   const [image, setImage] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const requestPermission = async () => {
     const { status } =
@@ -30,33 +34,73 @@ const ImageUploader: React.FC<Props> = ({ onImageSelected }) => {
     return true;
   };
 
-  const pickImage = async () => {
+  const pickAndUploadImage = async () => {
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'], // ✅ updated API
       allowsEditing: true,
-      aspect: [4, 3],
       quality: 0.8,
     });
 
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      setImage(uri);
-      onImageSelected?.(uri);
+    if (result.canceled) return;
+
+    const uri = result.assets[0].uri;
+    console.log('Image URI:', uri);
+    setImage(uri);
+
+    try {
+      setUploading(true);
+
+      // ✅ Convert to ArrayBuffer (best for React Native)
+      const response = await fetch(uri);
+      const arrayBuffer = await response.arrayBuffer();
+
+      const filePath = `${userId}/${Date.now()}.jpg`;
+
+      const { error } = await supabase.storage
+        .from('ProfilePictures')
+        .upload(filePath, arrayBuffer, {
+          contentType: 'image/jpeg',
+        });
+
+      if (error) throw error;
+
+      // ✅ Get public URL
+      const { data } = supabase.storage
+        .from('ProfilePictures')
+        .getPublicUrl(filePath);
+
+      const publicUrl = data.publicUrl;
+
+      onUploadComplete?.(publicUrl);
+    } catch (err) {
+      console.error('Upload error:', err);
+      Alert.alert(
+        'Upload failed',
+        'Check your internet connection or Supabase setup.'
+      );
+    } finally {
+      setUploading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.button} onPress={pickImage}>
+      <Pressable style={styles.button} onPress={pickAndUploadImage}>
         <Text style={styles.buttonText}>
-          {image ? 'Change Image' : 'Upload Image'}
+          {uploading
+            ? 'Uploading...'
+            : image
+            ? 'Change Image'
+            : 'Upload Image'}
         </Text>
       </Pressable>
 
-      {image && (
+      {uploading && <ActivityIndicator />}
+
+      {image && !uploading && (
         <Image source={{ uri: image }} style={styles.preview} />
       )}
     </View>
