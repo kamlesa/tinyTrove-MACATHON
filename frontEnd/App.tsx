@@ -1,44 +1,65 @@
 import { useState } from "react";
-import { Text, View, Pressable, StatusBar } from "react-native";
+import { Text, View, Pressable, StatusBar, StyleSheet } from "react-native";
 
-const pages = [
+import { useUserAuthStore } from "./stores/useUserAuthStore";
+
+import Home from "./pages/Home";
+import Map from "./pages/Map";
+import Profile from "./pages/Profile";
+import Post from "./pages/Post";
+import Search from "./pages/Search";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+
+type Page = "home" | "map" | "profile" | "post" | "search" | "login" | "signup";
+
+const pages: { key: Page; label: string }[] = [
   { key: "home", label: "Home" },
   { key: "map", label: "Map" },
   { key: "profile", label: "Profile" },
   { key: "post", label: "Post" },
   { key: "search", label: "Search" },
+  { key: "login", label: "Login" },
+  { key: "signup", label: "Signup" },
 ];
 
-const pageTitles = {
-  home: "Home Page",
-  map: "Map Page",
-  profile: "Profile Page",
-  post: "Post Page",
-  search: "Search Page",
-};
-import { useUserAuthStore } from "./stores/useUserAuthStore";
-
 export default function App() {
-  const [activePage, setActivePage] = useState("home");
-
+  const [activePage, setActivePage] = useState<Page>("login");
   const { addUser } = useUserAuthStore();
+
+  const renderPage = () => {
+    switch (activePage) {
+      case "home":
+        return <Home />;
+      case "map":
+        return <Map />;
+      case "profile":
+        return <Profile />;
+      case "post":
+        return <Post />;
+      case "search":
+        return <Search />;
+      case "login":
+        return <Login />;
+      case "signup":
+        return <Signup />;
+      default:
+        return <Text>Unknown Page</Text>;
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>MACATHON 2026</Text>
-      <Text style={styles.subtitle}>React + Expo Go starter app</Text>
-      <Pressable
-        style={styles.button}
-        onPress={() => {
-          addUser("data");
-        }}
-      >
+      <Text>MACATHON 2026</Text>
+      <Text>React + Expo Go starter app</Text>
+
+      <Pressable style={styles.button} onPress={() => addUser("data")}>
         <Text style={styles.buttonText}>Tap me</Text>
       </Pressable>
 
-      <StatusBar style="auto" />
-      <View style={styles.content}>
-        <Text style={styles.title}>{pageTitles[activePage]}</Text>
-      </View>
+      <StatusBar barStyle="dark-content" />
+
+      <View style={styles.content}>{renderPage()}</View>
 
       <View style={styles.footer}>
         {pages.map((page) => (
@@ -58,7 +79,7 @@ export default function App() {
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -66,10 +87,6 @@ const styles = {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
   },
   footer: {
     flexDirection: "row",
@@ -84,8 +101,10 @@ const styles = {
     paddingHorizontal: 12,
     borderRadius: 10,
   },
-
+  activeButton: {
+    backgroundColor: "#ddd",
+  },
   buttonText: {
     fontWeight: "600",
   },
-};
+});
