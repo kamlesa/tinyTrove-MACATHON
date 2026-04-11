@@ -1,14 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Pressable, ActivityIndicator, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  ActivityIndicator,
+  SafeAreaView,
+} from "react-native";
 
 // --- SCREENS ---
-import { LoginScreen } from './pages/Login';
-import { ProfileScreen } from './pages/Profile';
-import { HomeScreen } from './pages/Home';
-import { Map } from './pages/Map';
-import { Post } from './pages/Post';
-import { Search } from './pages/Search';
+import { LoginScreen } from "./pages/Login";
+import { ProfileScreen } from "./pages/Profile";
+import { HomeScreen } from "./pages/Home";
+import { Map } from "./pages/Map";
+import { Post } from "./pages/Post";
+import { Search } from "./pages/Search";
 
 // --- NAVIGATION CONFIG ---
 const pages = [
@@ -24,7 +31,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [userId, setUserId] = useState(null);
   const [isInitializing, setIsInitializing] = useState(false);
-  
+
   // Navigation State
   const [activePage, setActivePage] = useState("home");
 
@@ -61,28 +68,32 @@ export default function App() {
   // --- MAIN APP: If logged in, show Navigation ---
   const renderContent = () => {
     switch (activePage) {
-      case 'home': return <HomeScreen onLogout={handleLogout} />;
-      case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} />;
-      case 'map': return <Map />;
-      case 'post': return <Post />;
-      case 'search': return <Search />;
-      default: return <HomeScreen onLogout={handleLogout} />;
+      case "home":
+        return <HomeScreen onLogout={handleLogout} />;
+      case "profile":
+        return <ProfileScreen userId={userId} onLogout={handleLogout} />;
+      case "map":
+        return <Map />;
+      case "post":
+        return <Post />;
+      case "search":
+        return <Search />;
+      default:
+        return <HomeScreen onLogout={handleLogout} />;
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar style="auto" />
-      
+
       {/* Top Header */}
       <View style={styles.header}>
         <Text style={styles.appTitle}>tinyTrove</Text>
       </View>
 
       {/* Main Page Content */}
-      <View style={styles.mainContent}>
-        {renderContent()}
-      </View>
+      <View style={styles.mainContent}>{renderContent()}</View>
 
       {/* Navigation Footer */}
       <View style={styles.footer}>
@@ -95,16 +106,18 @@ export default function App() {
             ]}
             onPress={() => setActivePage(page.key)}
           >
-            <Text style={[
-              styles.navButtonText,
-              activePage === page.key && styles.activeButtonText
-            ]}>
+            <Text
+              style={[
+                styles.navButtonText,
+                activePage === page.key && styles.activeButtonText,
+              ]}
+            >
               {page.label}
             </Text>
           </Pressable>
         ))}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -121,14 +134,14 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 20,
     paddingBottom: 10,
-    alignItems: 'center',
+    alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   appTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: '#FF8FAB',
+    color: "#FF8FAB",
   },
   mainContent: {
     flex: 1,
@@ -144,8 +157,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 14,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
+    borderTopColor: "#eee",
+    backgroundColor: "#fff",
   },
   navButton: {
     paddingVertical: 8,

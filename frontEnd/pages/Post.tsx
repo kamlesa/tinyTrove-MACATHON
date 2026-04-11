@@ -6,16 +6,35 @@ import {
   TextInput,
   Pressable,
   Modal,
+  Alert,
 } from "react-native";
 import ImageUploader from "../components/ImageUpload";
 import LocationPicker from "../components/LocationPicker";
 import TagPicker from "../components/TagPicker";
+import { postApi } from "../lib/postApi";
+import { authApi } from "../lib/authApi";
 
-export default function Post() {
+export function Post() {
+  const [description, setDescription] = useState<string>("");
   const [location, setLocation] = useState<string | null>(null);
 
   //Should be updated to use an official tag type
   const [tags, setTags] = useState<string[]>([]);
+
+  async function submitPost() {
+    try {
+      const response = await postApi.createPost(
+        "",
+        description,
+        location,
+        tags
+      );
+      Alert.alert("Success", "Post Created!");
+      //onLoginSuccess(response.user);
+    } catch (error) {
+      Alert.alert("Error", error.response?.data?.error || error.message);
+    }
+  }
 
   return (
     <View style={styles.page}>
@@ -28,6 +47,8 @@ export default function Post() {
           style={styles.input}
           placeholder="Add a description"
           placeholderTextColor="#555"
+          value={description}
+          onChangeText={setDescription}
         ></TextInput>
 
         <LocationPicker chooseLocation={setLocation} />
@@ -36,7 +57,7 @@ export default function Post() {
           removeTag={(item) => setTags(tags.filter((item) => item !== item))}
         ></TagPicker>
 
-        <Pressable style={styles.button} onPress={() => console.log("pressed")}>
+        <Pressable style={styles.button} onPress={submitPost}>
           <Text style={styles.buttonText}>Submit Post</Text>
         </Pressable>
       </View>
