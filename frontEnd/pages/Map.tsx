@@ -120,7 +120,7 @@ export default function Map({ locations = [] }) {
 
   const onMessage = (event) => {
     const data = JSON.parse(event.nativeEvent.data);
-    if (data.type === 'markerClick') {
+    if (data.type === "markerClick") {
       setSelectedLocation(data.location);
     }
   };
@@ -141,7 +141,10 @@ export default function Map({ locations = [] }) {
         }}
       />
       {selectedLocation && (
-        <StoreInfoPanel location={selectedLocation} onClose={() => setSelectedLocation(null)} />
+        <StoreInfoPanel
+          location={selectedLocation}
+          onClose={() => setSelectedLocation(null)}
+        />
       )}
     </View>
   );
