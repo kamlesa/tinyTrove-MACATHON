@@ -150,7 +150,7 @@ export default function Post({ userId, setActivePage }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFE6C9",
+    backgroundColor: "#FFD09A",
   },
   content: {
     paddingHorizontal: 16,
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   },
   input: {
     width: "100%",
-    backgroundColor: "#E6E6E6",
+    backgroundColor: "#FFF8F0",
     padding: 12,
     borderRadius: 10,
     fontSize: 16,
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     textAlignVertical: "top", // Required for Android multiline
   },
   button: {
-    backgroundColor: "#4F8CFF",
+    backgroundColor: "#7EA8D9",
     paddingVertical: 15,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -195,7 +195,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "600",
     fontSize: 16,
     fontWeight: "bold",
   },

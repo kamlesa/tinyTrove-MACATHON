@@ -213,7 +213,7 @@ export default function LocationPicker({
 const styles = StyleSheet.create({
   trigger: {
     width: "100%",
-    backgroundColor: "#D9D9D9",
+    backgroundColor: "#FFE6C9",
     paddingVertical: 14,
     paddingHorizontal: 14,
     borderRadius: 10,
@@ -225,12 +225,12 @@ const styles = StyleSheet.create({
 
   triggerText: {
     fontSize: 16,
-    color: "#333",
+    color: "#211A19",
   },
 
   arrow: {
     fontSize: 20,
-    color: "#555",
+    color: "#211A19",
   },
 
   modal: {
