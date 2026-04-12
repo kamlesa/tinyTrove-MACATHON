@@ -6,6 +6,7 @@ import {
   View,
   Pressable,
   ActivityIndicator,
+  Image
 } from "react-native";
 import { authApi } from "./lib/authApi"; 
 
@@ -23,8 +24,6 @@ import TreasureDetail from './pages/TreasureDetail';
 import PostDetail from './pages/PostDetail';
 
 const pages = [
-  { key: "home", label: "Home" },
-  { key: "map", label: "Map" },
   { key: "post", label: "Post" },
   { key: "search", label: "Search" },
   { key: "profile", label: "Profile" },
@@ -37,7 +36,7 @@ export default function App() {
   const [isInitializing, setIsInitializing] = useState(false);
 
   // Navigation State
-  const [activePage, setActivePage] = useState("home");
+  const [activePage, setActivePage] = useState("profile");
   const [currentStore, setCurrentStore] = useState(null);
   const [currentCommunity, setCurrentCommunity] = useState(null);
   const [currentTreasure, setCurrentTreasure] = useState(null);
@@ -172,7 +171,21 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="light" />
       <View style={styles.header}>
-        <Text style={styles.appTitle}>tinyTrove</Text>
+        {showBackButton && (
+          <View style={styles.backButtonWrapper}>
+            <Button widthSize="icon" heightSize="icon" onClick={handleHeaderBack}>
+              ←
+            </Button>
+          </View>
+        )}
+
+        <Image
+          source={{ uri: "https://hhygpdtwzluzgvagrbqm.supabase.co/storage/v1/object/public/CommunityPictures/sketch1775967349277.png" }}
+          style={{ width: 120, height: 120, alignSelf: 'center', paddingBottom: 0, marginTop: 0, marginBottom: -30 }}
+          resizeMode="contain"
+        />
+
+        
       </View>
 
       <View style={styles.mainContent}>
@@ -200,15 +213,34 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#211A19" },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
-    paddingTop: 50,
-    paddingBottom: 15,
+    paddingTop: 0,
+    paddingBottom: 0,
+    marginTop: 0,
+    marginBottom: 0,
     alignItems: "center",
-    backgroundColor: "#211A19",
-    borderBottomWidth: 1,
-    borderBottomColor: "#332a29",
+    justifyContent: "center",
+    
+    borderBottomColor: "#211A19",
+    position: "relative",
   },
-  appTitle: { fontSize: 22, fontWeight: "bold", color: "#FFF8F0" },
-  mainContent: { flex: 1 },
+
+  backButtonWrapper: {
+    position: "absolute",
+    left: 12,
+    top: 40,
+    zIndex: 1,
+
+  },
+
+
+  mainContent: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",
