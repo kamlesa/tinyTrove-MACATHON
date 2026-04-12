@@ -4,13 +4,16 @@ export const createPost = async (req, res) => {
   try {
     // 1. Extract the incoming data
     const { userId, image, description, location, tags } = req.body;
+    const normalizedTags = Array.isArray(tags)
+      ? tags.filter((tag) => tag?.id)
+      : [];
 
     // 2. Safety check: make sure we have a user ID before proceeding
     if (!userId) {
       return res.status(400).json({ error: "User ID is required" });
     }
 
-    if (!tags || tags.length === 0) {
+    if (normalizedTags.length === 0) {
       return res.status(400).json({ error: "At least one tag is required" });
     }
 
@@ -28,6 +31,8 @@ export const createPost = async (req, res) => {
           photo_url: image,
           caption: description,
           location: location,
+          // The current schema still expects a single treasure_tag FK on posts.
+          treasure_tag: normalizedTags[0].id,
         },
       ])
       .select();
@@ -38,9 +43,9 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ error: postError.message });
     }
 
-    console.log("tagss", tags);
-    if (tags?.length) {
-      const tagRows = tags.map(
+    console.log("tagss", normalizedTags);
+    if (normalizedTags.length) {
+      const tagRows = normalizedTags.map(
         (tag) => (
           console.log("postdata", postData[0].id),
           console.log("tag", tag.id),
