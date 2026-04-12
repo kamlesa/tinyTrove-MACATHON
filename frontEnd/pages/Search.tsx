@@ -260,7 +260,7 @@ export function Search({ onStoreSelect, onCommunitySelect, onTreasureSelect }) {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: "#fffbf5",
+    backgroundColor: "#FFE6C9",
     paddingHorizontal: 16,
     paddingTop: 24,
   },
@@ -271,13 +271,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   searchInput: {
-    height: 48,
-    borderRadius: 16,
+    height: 40,
     backgroundColor: "#fff",
     paddingHorizontal: 16,
+    paddingTop: 0,
+    paddingBottom: 0,
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#e8d8d0",
+    borderRadius: 999,
     marginBottom: 16,
     color: "#2e1d14",
   },
@@ -286,25 +288,25 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 10,
     marginBottom: 20,
+    justifyContent: "center",
   },
   filterButton: {
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#e5c4d6",
-    backgroundColor: "#fff",
+
+    backgroundColor: "#FFD09A",
   },
   filterButtonActive: {
-    backgroundColor: "#ffdaec",
-    borderColor: "#ff8fab",
+    backgroundColor: "#8C5A3C",
+    borderColor: "#8C5A3C",
   },
   filterText: {
-    color: "#7a6b78",
+    color: "#8C5A3C",
     fontWeight: "600",
   },
   filterTextActive: {
-    color: "#d9417d",
+    color: "#ffffff",
   },
   loadingWrapper: {
     flex: 1,
@@ -328,18 +330,18 @@ const styles = StyleSheet.create({
   },
   treasureCard: {
     backgroundColor: "#FFF8F0",
-    borderLeftWidth: 4,
-    borderLeftColor: "#ff8fab",
+    borderWidth: 4,
+    borderColor: "#ff8fab",
   },
   communityCard: {
     backgroundColor: "#E8F2FF",
-    borderLeftWidth: 4,
-    borderLeftColor: "#71A5D3",
+    borderWidth: 4,
+    borderColor: "#71A5D3",
   },
   storeCard: {
-    backgroundColor: "#F5E5D8",
-    borderLeftWidth: 4,
-    borderLeftColor: "#A47552",
+    backgroundColor: "#f7e9de",
+    borderWidth: 4,
+    borderColor: "#8C5A3C",
   },
   iconCircle: {
     width: 56,

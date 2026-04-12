@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   inputContainer: { gap: 12, marginBottom: 24},
   input: { borderWidth: 1,textAlignVertical: "center", backgroundColor: '#FFF8F0', borderColor: "#8C5A3C", paddingLeft: 12, paddingBottom: 0,paddingTop: 0, borderRadius: 999, fontSize: 16, height: 36, justifyContent: "center"},
   buttonContainer: { gap: 12, color: '#8C5A3C' },
-  primaryButton: { backgroundColor: '#71A5D3', borderColor: "#8C5A3C", borderWidth: 1, padding: 5, borderRadius: 8, alignItems: 'center', borderRadius: 999 },
+  primaryButton: { backgroundColor: '#71A5D3', borderColor: "#8C5A3C", borderWidth: 1, padding: 5, alignItems: 'center', borderRadius: 999 },
   primaryButtonText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   secondaryButton: { backgroundColor: 'transparent', padding: 16, alignItems: 'center' },
   secondaryButtonText: { color: '#8C5A3C', fontSize: 16, fontWeight: 'bold' },
