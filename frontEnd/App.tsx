@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { authApi } from "./lib/authApi"; // Adjust if your path is different  
 
 // --- SCREENS ---
 import { LoginScreen } from './pages/Login';
@@ -21,6 +22,7 @@ import StoreMap from './pages/StoreMap';
 import CommunityDetail from './pages/CommunityDetail';
 import TreasureDetail from './pages/TreasureDetail';
 import PostDetail from './pages/PostDetail';
+import CreateTag from './pages/TagCreation';
 
 // --- NAVIGATION CONFIG ---
 const pages = [
@@ -44,6 +46,7 @@ export default function App() {
   const [currentTreasure, setCurrentTreasure] = useState(null);
   const [currentPost, setCurrentPost] = useState(null);
   const [previousPage, setPreviousPage] = useState("search");
+  const [userCommunities, setUserCommunities] = useState([]);
 
   useEffect(() => {
     // TODO: Check for stored auth token and set session
@@ -84,6 +87,29 @@ export default function App() {
     setSession(user);
     setUserId(user?.id);
   };
+
+  const fetchUserCommunities = async () => {
+  // 1. Guard Clause: Don't try to fetch if we don't have a user
+  console.log("Fetching user communities for userId:", userId);
+  if (!userId) return;
+
+  try {
+    // 2. Call your API helper 
+    // This hits your GET /user/:userId/communities route
+    const data = await authApi.userCommunities(userId);
+    console.log("Fetched user communities:", data);
+    // 3. Update the global state
+    // This triggers a re-render, updating buttons from 'Join' to 'Leave'
+    setUserCommunities(data);
+
+    console.log("Successfully synced membership data.");
+  } catch (err) {
+    // 4. Handle errors silently or via alert
+    console.error("Failed to sync communities:", err);
+    // You might want to clear the list if the fetch fails
+    setUserCommunities([]); 
+  }
+};
 
   // --- LOADING STATE ---
   if (isInitializing) {
@@ -149,6 +175,13 @@ export default function App() {
           }}
         />
       );
+      case "createCommunity":
+      return (
+        <CreateCommunity 
+          userId={userId} 
+          onGoBack={() => setActivePage('profile')} 
+        />
+      );
       case "storeMap":
         return (
           <StoreMap
@@ -157,12 +190,39 @@ export default function App() {
           />
         );
       case "communityDetail":
+        
+        console.log("Passing member status to CommunityDetail:", currentCommunity);
+        console.log("User communities for membership check:", userCommunities);
+        console.log("Current community ID:", userId);
         return (
           <CommunityDetail
             community={currentCommunity}
+            userId={userId} // Pass the ID down
+            onBack={() => setActivePage(previousPage)}
+            onCreateTag={() => {
+              setPreviousPage('communityDetail'); 
+              setActivePage('createTag');        
+            }}
+            // Pass your fetch function so the detail page can trigger a refresh!
+            checkStatus={() => fetchUserCommunities()} 
+          />
+        );
+      case "treasureDetail":
+        return (
+          <TreasureDetail
+            treasure={currentTreasure}
             onBack={() => setActivePage(previousPage)}
           />
         );
+      case "createTag":
+      return (
+        <CreateTag 
+          userId={userId} 
+          // When they finish or hit cancel, they go back to the Community page
+          onGoBack={() => setActivePage(previousPage)} 
+        />
+      );
+
       case "treasureDetail":
         return (
           <TreasureDetail

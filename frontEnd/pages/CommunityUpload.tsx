@@ -24,8 +24,8 @@ export default function CreateCommunity({ userId, onGoBack }) {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>New Community</Text>
-      <TextInput style={styles.input} placeholder=" Name of Community" value={name} onChangeText={setName} />
-      <TextInput style={[styles.input, { height: 100 }]} placeholder="Description" multiline value={description} onChangeText={setDescription} />
+      <TextInput style={[styles.input]} placeholder=" Name of Community" value={name} onChangeText={setName} />
+      <TextInput style={[styles.input, { height: 100 }]} placeholder="Description" multiline value={description} placeholderTextColor="#000000" onChangeText={setDescription} />
       
       <Pressable style={styles.button} onPress={handleCreate} disabled={loading}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create</Text>}

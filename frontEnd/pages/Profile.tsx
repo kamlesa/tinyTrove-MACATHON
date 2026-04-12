@@ -23,7 +23,7 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
       const [profileData, postsData, communitiesData] = await Promise.all([
         authApi.getProfile(userId),
         authApi.getPosts(userId),
-        authApi.getCommunities(userId)
+        authApi.getUserCommunities(userId)
       ]);
 
       setProfile(profileData);
@@ -154,7 +154,7 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
               <View style={styles.resultText}>
                 <Text style={styles.resultName}>{item.name}</Text>
                 <Text style={styles.resultMeta}>{item.description || 'Community details'}</Text>
-                <Text style={styles.resultMeta}>{item.member_count || 0} members</Text>
+                <Text style={styles.resultMeta}>{item.number_of_members || 0} members</Text>
               </View>
             </Pressable>
           )}

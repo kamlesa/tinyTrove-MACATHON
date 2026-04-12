@@ -110,3 +110,51 @@ export const createCommunity = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const createTag = async (req, res) => {
+  try {
+    // 1. Extract the incoming data
+    const { 
+      userId, 
+      name, 
+      description, 
+      photo_url 
+    } = req.body;
+
+    // 2. Safety check: need an ID and a Name
+    if (!userId || !name) {
+      return res.status(400).json({ error: "User ID and Tag Name are required" });
+    }
+
+    // 3. STEP ONE: Insert into 'treasure_tag' table
+    // Note: Column names changed to match your schema (descriptor/photo)
+    const { data: tagData, error: tagError } = await supabase
+      .from("treasure_tag") 
+      .insert([
+        {
+          name: name,
+          descriptor: description || null, // Matches 'descriptor' in your schema
+          photo: photo_url || null,       // Matches 'photo' in your schema
+          // If you have a 'creator_id' column, add it here:
+          // creator_id: userId 
+        },
+      ])
+      .select();
+
+    // 4. Check for database errors
+    if (tagError) {
+      console.error("Database Error (Treasure Tag):", tagError);
+      return res.status(400).json({ error: tagError.message });
+    }
+
+    console.log(`Successfully created tag: ${name}`);
+
+    // 5. Send the newly created tag data back to the app
+    // We return tagData[0] because .insert().select() returns an array
+    res.status(201).json(tagData[0]);
+
+  } catch (err) {
+    console.error("Server Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
