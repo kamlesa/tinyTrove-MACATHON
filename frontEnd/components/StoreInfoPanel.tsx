@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
 
   header: {
     marginBottom: 10,
-    backgroundColor: "#FFD09A",
+    backgroundColor: "#8C5A3C",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   storeName: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#2E1F17",
+    color: "#FFF8F0",
     flex: 1,
     marginBottom: 2,
   },
@@ -160,13 +160,13 @@ const styles = StyleSheet.create({
 
   closeBtnText: {
     fontSize: 20,
-    color: "#7C5A42",
+    color: "#FFF8F0",
     fontWeight: "400",
   },
 
   storeAddress: {
     fontSize: 14,
-    color: "#5A4333",
+    color: "#FFF8F0",
   },
 
   carouselSection: {
