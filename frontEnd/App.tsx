@@ -139,7 +139,7 @@ export default function App() {
       case "map":
         return <Map locations={locations} />;
       case "post":
-        return <Post userId={userId} />;
+        return <Post userId={userId} setActivePage={setActivePage} />;
       case "search":
         return (
           <Search

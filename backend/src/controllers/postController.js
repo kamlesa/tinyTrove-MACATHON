@@ -10,6 +10,15 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ error: "User ID is required" });
     }
 
+    if (!tags || tags.length === 0) {
+      return res.status(400).json({ error: "At least one tag is required" });
+    }
+
+    if (!location) {
+      return res.status(400).json({ error: "Location is required" });
+    }
+
+    console.log(req.body);
     // 3. Insert into the database
     const { data: postData, error: postError } = await supabase
       .from("posts")
@@ -18,7 +27,6 @@ export const createPost = async (req, res) => {
           user_id: userId, // Corrected: Links the post to the user
           photo_url: image,
           caption: description,
-          treasure_tag: tags,
           location: location,
         },
       ])
@@ -30,11 +38,30 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ error: postError.message });
     }
 
+    console.log("tagss", tags);
+    if (tags?.length) {
+      const tagRows = tags.map(
+        (tag) => (
+          console.log("postdata", postData[0].id),
+          console.log("tag", tag.id),
+          {
+            post_id: postData[0].id,
+            tag_id: tag.id,
+          }
+        )
+      );
+
+      const { error: tagError } = await supabase
+        .from("post_tags")
+        .insert(tagRows);
+
+      if (tagError) throw tagError;
+    }
+
     console.log("Successfully made post");
 
     // 5. Send the newly created post data back to the app
     res.status(201).json(postData);
-
   } catch (err) {
     console.error("Server Error:", err);
     res.status(500).json({ error: err.message });

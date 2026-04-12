@@ -16,7 +16,7 @@ export default function Map({ locations = [] }) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=${mapsAPIKey}&libraries=marker"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhCrEsAMyzkWJMzVmMQKg5yhKidiIBleE&libraries=marker"></script>
     <style>
       html, body { height: 100%; margin: 0; padding: 0; }
       #container { display: flex; flex-direction: column; height: 100%; }
@@ -41,7 +41,7 @@ export default function Map({ locations = [] }) {
       }
 
       async function geocodeAddress(address) {
-        const response = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(address) + '&key=${mapsAPIKey}');
+        const response = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(address) + '&key=AIzaSyBhCrEsAMyzkWJMzVmMQKg5yhKidiIBleE');
         const data = await response.json();
         if (data.results && data.results[0]) {
           return data.results[0].geometry.location;
@@ -120,7 +120,7 @@ export default function Map({ locations = [] }) {
 
   const onMessage = (event) => {
     const data = JSON.parse(event.nativeEvent.data);
-    if (data.type === 'markerClick') {
+    if (data.type === "markerClick") {
       setSelectedLocation(data.location);
     }
   };
@@ -141,7 +141,10 @@ export default function Map({ locations = [] }) {
         }}
       />
       {selectedLocation && (
-        <StoreInfoPanel location={selectedLocation} onClose={() => setSelectedLocation(null)} />
+        <StoreInfoPanel
+          location={selectedLocation}
+          onClose={() => setSelectedLocation(null)}
+        />
       )}
     </View>
   );
