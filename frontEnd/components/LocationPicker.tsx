@@ -134,7 +134,7 @@ export default function LocationPicker({
                     .from("stores")
                     .insert([
                       {
-                        name: query,
+                        name: query.replace(/\b\w/g, c => c.toUpperCase()),
                         address: formattedAddress,
                       },
                     ])
@@ -166,7 +166,7 @@ export default function LocationPicker({
               }}
             >
               <Text style={styles.addButtonText}>
-                Location not in list? Add "{query}"
+                Location not in list? Add "{query.replace(/\b\w/g, c => c.toUpperCase())}"
               </Text>
             </Pressable>
           )}
