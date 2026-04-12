@@ -129,14 +129,16 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   button: {
-    backgroundColor: "#4F8CFF",
-    paddingVertical: 12,
+    backgroundColor: "#71A5D3",
     paddingHorizontal: 16,
-    borderRadius: 8,
+    height: 34,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "600",
+    fontSize: 15,
   },
   preview: {
     width: 200,
