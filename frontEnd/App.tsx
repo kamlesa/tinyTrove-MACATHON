@@ -6,6 +6,7 @@ import {
   View,
   Pressable,
   ActivityIndicator,
+  Image
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -214,7 +215,13 @@ export default function App() {
           </View>
         )}
 
-        <Text style={styles.appTitle}>tinyTrove</Text>
+        <Image
+          source={{ uri: "https://hhygpdtwzluzgvagrbqm.supabase.co/storage/v1/object/public/CommunityPictures/sketch1775967349277.png" }}
+          style={{ width: 120, height: 120, alignSelf: 'center', paddingBottom: 0, marginTop: 0, marginBottom: -30 }}
+          resizeMode="contain"
+        />
+
+        
       </View>
 
       {/* Main Page Content */}
@@ -262,11 +269,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    paddingTop: 40,
-    paddingBottom: 10,
+    paddingTop: 0,
+    paddingBottom: 0,
+    marginTop: 0,
+    marginBottom: 0,
     alignItems: "center",
     justifyContent: "center",
-    borderBottomWidth: 1,
+    
     borderBottomColor: "#211A19",
     position: "relative",
   },
@@ -274,15 +283,12 @@ const styles = StyleSheet.create({
   backButtonWrapper: {
     position: "absolute",
     left: 12,
-    top: 30,
+    top: 40,
     zIndex: 1,
+
   },
 
-  appTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#FFF8F0",
-  },
+
   mainContent: {
     flex: 1,
   },
