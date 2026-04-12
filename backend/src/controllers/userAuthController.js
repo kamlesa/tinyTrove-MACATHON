@@ -121,13 +121,14 @@ export const getUserCommunities = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Fetch communities the user is a member of AND get the total member count for each
     const { data: membershipData, error: membershipError } = await supabase
       .from('community_members')
       .select(`
-        communities (
-          *,
-          member_count:community_members(count)
+        communities (*
+          , creator:profiles (
+              display_name,
+              avatar_url
+            )
         )
       `)
       .eq('user_id', userId);
@@ -136,18 +137,97 @@ export const getUserCommunities = async (req, res) => {
       return res.status(404).json({ error: membershipError.message });
     }
 
-    // Flatten the data and safely extract the count number
-    const communitiesData = membershipData.map(membership => {
-      const community = membership.communities;
-      
-      return {
-        ...community,
-        // Supabase returns count as [{ count: X }]. This extracts just the number X!
-        member_count: community.member_count?.[0]?.count || 0 
-      };
+    // CRITICAL: Extract the 'communities' object so the frontend sees '.id'
+    // Instead of [{ communities: { id: 1 } }], it becomes [{ id: 1 }]
+    const flattenedCommunities = membershipData.map(item => item.communities);
+
+    res.json(flattenedCommunities);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+export const isMember = async (req, res) => {
+  try {
+    const { userId, communityId } = req.params;
+
+    const { data, error } = await supabase
+      .from("community_members")
+      .select('role') // Join to get member info
+      .eq("user_id", userId)
+      .eq("community_id", communityId);
+
+    if (error) {
+      return res.status(404).json({ error: error.message });
+    }
+
+    res.json({ isMember: data.length > 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+// --- JOIN COMMUNITY ---
+export const joinCommunity = async (req, res) => {
+  try {
+    const { userId, communityId } = req.body;
+
+    if (!userId || !communityId) {
+      return res.status(400).json({ error: "User ID and Community ID are required" });
+    }
+
+    // 1. Insert the membership record
+    const { data: joinData, error: joinError } = await supabase
+      .from("community_members")
+      .insert([{ user_id: userId, community_id: communityId }])
+      .select()
+      .single();
+
+    if (joinError) {
+      if (joinError.code === '23505') {
+        return res.status(400).json({ error: "You are already a member." });
+      }
+      return res.status(400).json({ error: joinError.message });
+    }
+
+    // 2. Increment the member count in the communities table
+    // We use .rpc() here because it's atomic (prevents "race conditions")
+    const { error: updateError } = await supabase.rpc('increment_community_members', { 
+      comm_id: communityId 
     });
 
-    res.json(communitiesData);
+    if (updateError) {
+      console.error("Member joined, but count failed to update:", updateError);
+    }
+
+    res.json({ message: "Successfully joined!", data: joinData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// --- LEAVE COMMUNITY ---
+export const leaveCommunity = async (req, res) => {
+  try {
+    const { userId, communityId } = req.body;
+
+    if (!userId || !communityId) {
+      return res.status(400).json({ error: "User ID and Community ID are required" });
+    }
+
+    const { error } = await supabase
+      .from("community_members")
+      .delete()
+      .eq("user_id", userId)
+      .eq("community_id", communityId);
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.json({ message: "Successfully left the community" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

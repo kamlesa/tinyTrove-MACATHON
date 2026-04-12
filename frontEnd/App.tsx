@@ -8,23 +8,22 @@ import {
   ActivityIndicator,
   Image
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { authApi } from "./lib/authApi"; 
 
 // --- SCREENS ---
-import { LoginScreen } from "./pages/Login";
-import { ProfileScreen } from "./pages/Profile";
-import { HomeScreen } from "./pages/Home";
-import Map from "./pages/Map";
-import Post from "./pages/Post";
-import { Search } from "./pages/Search";
-import StoreMap from "./pages/StoreMap";
-import CommunityDetail from "./pages/CommunityDetail";
-import TreasureDetail from "./pages/TreasureDetail";
-import PostDetail from "./pages/PostDetail";
-
-// --- COMPONENTS ---
+import { LoginScreen } from './pages/Login';
+import { ProfileScreen } from './pages/Profile';
+import { HomeScreen } from './pages/Home';
+import Map from './pages/Map'
+import Post from './pages/Post';
+import CreateCommunity from './pages/CommunityUpload';
+import { Search } from './pages/Search';
+import StoreMap from './pages/StoreMap';
+import CommunityDetail from './pages/CommunityDetail';
+import TreasureDetail from './pages/TreasureDetail';
+import PostDetail from './pages/PostDetail';
 import Button from './components/button';
-// --- NAVIGATION CONFIG ---
+
 const pages = [
   { key: "post", label: "Post" },
   { key: "search", label: "Search" },
@@ -44,12 +43,6 @@ export default function App() {
   const [currentTreasure, setCurrentTreasure] = useState(null);
   const [currentPost, setCurrentPost] = useState(null);
   const [previousPage, setPreviousPage] = useState("search");
-
-  useEffect(() => {
-    // TODO: Check for stored auth token and set session
-    // For now, user starts logged out
-    setIsInitializing(false);
-  }, []);
 
   const handleLogout = () => {
     setSession(null);
@@ -83,7 +76,40 @@ export default function App() {
   const handleLoginSuccess = (user) => {
     setSession(user);
     setUserId(user?.id);
+    fetchUserCommunities(user?.id);
   };
+
+  const fetchUserCommunities = async (idToUse) => {
+    const targetId = idToUse || userId;
+    if (!targetId) return;
+    try {
+      // Note: Use getUserCommunities (singular) as defined in your authApi
+      const data = await authApi.getUserCommunities(targetId);
+      console.log("Successfully synced membership data.");
+    } catch (err) {
+      console.error("Failed to sync communities:", err);
+    }
+  };
+
+  if (isInitializing) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#FF8FAB" />
+      </View>
+    );
+  }
+
+  if (!session) {
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  const locations = [
+    { id: "1", address: "Level3/258 Little Bourke St, Melbourne VIC 3000", title: "Melridai" },
+    { id: "2", address: "Kidstuff Malvern", title: "Kidstuff Malvern" },
+    { id: "3", address: "21 Chancellors Walk, Clayton VIC 3168", title: "Monash Kuromi Store" },
+  ];
+
+  const showBackButton = ["postDetail", "storeMap", "communityDetail", "treasureDetail"].includes(activePage);
 
   const handleHeaderBack = () => {
     switch (activePage) {
@@ -101,39 +127,6 @@ export default function App() {
     }
   };
 
-  const showBackButton = ["postDetail", "storeMap", "communityDetail", "treasureDetail"].includes(activePage);
-
-
-  // --- LOADING STATE ---
-  if (isInitializing) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#FF8FAB" />
-      </View>
-    );
-  }
-
-  // --- AUTH GATE: If no session, show Login ---
-  if (!session) {
-    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
-  }
-
-  const locations = [
-    //TODO: fetch locations via treasure/database
-    {
-      id: "1",
-      address: "Level3/258 Little Bourke St, Melbourne VIC 3000",
-      title: "Melridai",
-    },
-    { id: "2", address: "Kidstuff Malvern", title: "Kidstuff Malvern" },
-    {
-      id: "3",
-      address: "21 Chancellors Walk, Clayton VIC 3168",
-      title: "Monash Kuromi Store",
-    },
-  ];
-
-  // --- MAIN APP: If logged in, show Navigation ---
   const renderContent = () => {
     switch (activePage) {
       case "home":
@@ -146,39 +139,36 @@ export default function App() {
         return (
           <Search
             onStoreSelect={(store) => handleStoreSelect(store, "search")}
-            onCommunitySelect={(community) =>
-              handleCommunitySelect(community, "search")
-            }
-            onTreasureSelect={(treasure) =>
-              handleTreasureSelect(treasure, "search")
-            }
+            onCommunitySelect={(community) => handleCommunitySelect(community, "search")}
+            onTreasureSelect={(treasure) => handleTreasureSelect(treasure, "search")}
           />
         );
-      case "profile":
+      case 'profile': 
         return (
-          <ProfileScreen
-            userId={userId}
-            onLogout={handleLogout}
-            onCommunitySelect={(community) =>
-              handleCommunitySelect(community, "profile")
-            }
-            onPostSelect={(post) => handlePostSelect(post, "profile")}
+          <ProfileScreen 
+            userId={userId} 
+            onLogout={handleLogout} 
+            onCommunitySelect={(community) => handleCommunitySelect(community, 'profile')} 
+            onPostSelect={(post) => handlePostSelect(post, 'profile')}
+            onCreateCommunity={() => {
+              setPreviousPage('profile'); 
+              setActivePage('createCommunity');
+            }}
           />
         );
+      case "createCommunity":
+        return <CreateCommunity userId={userId} onGoBack={() => setActivePage('profile')} />;
       case "storeMap":
-        return (
-          <StoreMap
-            store={currentStore}
-            onBack={() => setActivePage(previousPage)}
-          />
-        );
+        return <StoreMap store={currentStore} onBack={() => setActivePage(previousPage)} />;
       case "communityDetail":
         return (
           <CommunityDetail
             community={currentCommunity}
+            userId={userId}
             onBack={() => setActivePage(previousPage)}
             onTreasureSelect={(treasure) => handleTreasureSelect(treasure, "community")}
             onPostSelect={(post) => handlePostSelect(post, "community")}
+            checkStatus={() => fetchUserCommunities(userId)} 
           />
         );
       case "treasureDetail":
@@ -190,12 +180,7 @@ export default function App() {
           />
         );
       case "postDetail":
-        return (
-          <PostDetail
-            post={currentPost}
-            onBack={() => setActivePage(previousPage)}
-          />
-        );
+        return <PostDetail post={currentPost} onBack={() => setActivePage(previousPage)} />;
       default:
         return <HomeScreen onLogout={handleLogout} />;
     }
@@ -203,9 +188,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="auto" />
-
-
+      <StatusBar style="light" />
       <View style={styles.header}>
         {showBackButton && (
           <View style={styles.backButtonWrapper}>
@@ -224,30 +207,18 @@ export default function App() {
         
       </View>
 
-      {/* Main Page Content */}
       <View style={styles.mainContent}>
         {renderContent()}
       </View>
 
-     
-
-      {/* Navigation Footer */}
       <View style={styles.footer}>
         {pages.map((page) => (
           <Pressable
             key={page.key}
-            style={[
-              styles.navButton,
-              activePage === page.key && styles.activeButton,
-            ]}
+            style={[styles.navButton, activePage === page.key && styles.activeButton]}
             onPress={() => setActivePage(page.key)}
           >
-            <Text
-              style={[
-                styles.navButtonText,
-                activePage === page.key && styles.activeButtonText,
-              ]}
-            >
+            <Text style={[styles.navButtonText, activePage === page.key && styles.activeButtonText]}>
               {page.label}
             </Text>
           </Pressable>
@@ -258,16 +229,8 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  
-  container: {
-    flex: 1,
-    backgroundColor: "#211A19",
-  },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: "#211A19" },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     paddingTop: 0,
     paddingBottom: 0,
@@ -302,25 +265,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     paddingVertical: 14,
-    paddingBottom: 40,
-    borderTopWidth: 1,
-    borderTopColor: "#211A19",
+    paddingBottom: 35,
     backgroundColor: "#211A19",
+    borderTopWidth: 1,
+    borderTopColor: "#332a29",
   },
-  navButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-  },
-  activeButton: {
-    backgroundColor: "#71A5D3", // Light pink highlight
-  },
-  navButtonText: {
-    fontWeight: "600",
-    color: "#FFE6C9",
-    fontSize: 12,
-  },
-  activeButtonText: {
-    color: "#FFF8F0", // Main pink
-  },
+  navButton: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10 },
+  activeButton: { backgroundColor: "#71A5D3" },
+  navButtonText: { fontWeight: "600", color: "#FFE6C9", fontSize: 12 },
+  activeButtonText: { color: "#FFF8F0" },
 });
