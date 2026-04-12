@@ -42,6 +42,7 @@ export default function App() {
   const [currentCommunity, setCurrentCommunity] = useState(null);
   const [currentTreasure, setCurrentTreasure] = useState(null);
   const [currentPost, setCurrentPost] = useState(null);
+  const [currentMapLocations, setCurrentMapLocations] = useState([]);
   const [previousPage, setPreviousPage] = useState("search");
 
   const handleLogout = () => {
@@ -71,6 +72,12 @@ export default function App() {
     setCurrentPost(post);
     setPreviousPage(origin);
     setActivePage("postDetail");
+  };
+
+  const handleMapOpen = (locations, origin = "search") => {
+    setCurrentMapLocations(locations || []);
+    setPreviousPage(origin);
+    setActivePage("map");
   };
 
   const handleLoginSuccess = (user) => {
@@ -103,13 +110,7 @@ export default function App() {
     return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
-  const locations = [
-    { id: "1", address: "Level3/258 Little Bourke St, Melbourne VIC 3000", title: "Melridai" },
-    { id: "2", address: "Kidstuff Malvern", title: "Kidstuff Malvern" },
-    { id: "3", address: "21 Chancellors Walk, Clayton VIC 3168", title: "Monash Kuromi Store" },
-  ];
-
-  const showBackButton = ["postDetail", "storeMap", "communityDetail", "treasureDetail"].includes(activePage);
+  const showBackButton = ["postDetail", "storeMap", "communityDetail", "treasureDetail", "map"].includes(activePage);
 
   const handleHeaderBack = () => {
     switch (activePage) {
@@ -120,6 +121,9 @@ export default function App() {
       case "communityDetail":
       case "treasureDetail":
         setActivePage("search");
+        break;
+      case "map":
+        setActivePage(previousPage);
         break;
       default:
         setActivePage("home");
@@ -132,7 +136,7 @@ export default function App() {
       case "home":
         return <HomeScreen onLogout={handleLogout} />;
       case "map":
-        return <Map locations={locations} />;
+        return <Map locations={currentMapLocations} />;
       case "post":
         return <Post userId={userId} setActivePage={setActivePage} />;
       case "search":
@@ -177,10 +181,17 @@ export default function App() {
             treasure={currentTreasure}
             onBack={() => setActivePage(previousPage)}
             onPostSelect={(post) => { setCurrentPost(post); setActivePage("postDetail"); }}
+            onFindLocations={(locations) => handleMapOpen(locations, "treasureDetail")}
           />
         );
       case "postDetail":
-        return <PostDetail post={currentPost} onBack={() => setActivePage(previousPage)} />;
+        return (
+          <PostDetail
+            post={currentPost}
+            onBack={() => setActivePage(previousPage)}
+            onOpenStore={(location) => handleMapOpen([location], "postDetail")}
+          />
+        );
       default:
         return <HomeScreen onLogout={handleLogout} />;
     }

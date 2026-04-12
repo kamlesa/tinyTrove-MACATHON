@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Image, ImageSourcePropType, FlatList, Pressable } from "react-native";
 import Button from "../components/button";
 import { supabase } from "../lib/supabase";
 
 
 
-export default function TreasureDetail({ treasure, onBack, onPostSelect }) {
+export default function TreasureDetail({ treasure, onBack, onPostSelect, onFindLocations }) {
   const [posts, setPosts] = useState([]);
   const [community, setCommunity] = useState(null);
 
@@ -31,7 +31,7 @@ export default function TreasureDetail({ treasure, onBack, onPostSelect }) {
       if (postIds.length > 0) {
         const { data: postsData, error: postsError } = await supabase
           .from('posts')
-          .select('id, photo_url')
+          .select('id, photo_url, location')
           .in('id', postIds);
 
         if (postsError) throw postsError;
@@ -94,6 +94,16 @@ export default function TreasureDetail({ treasure, onBack, onPostSelect }) {
     onClick: () => onPostSelect?.(p)
   }));
 
+  const postLocations = useMemo(() => {
+    const uniqueLocations = [...new Set(posts.map((post) => post.location).filter(Boolean))];
+
+    return uniqueLocations.map((location, index) => ({
+      id: `treasure-location-${index}`,
+      title: location,
+      address: location,
+    }));
+  }, [posts]);
+
   const headerComponent = (
     <>
       <View style={styles.topBar}>
@@ -112,7 +122,7 @@ export default function TreasureDetail({ treasure, onBack, onPostSelect }) {
 
       <View style={styles.middle}>
         <View style={styles.buttons}>
-          <Button widthSize="medium" heightSize="small" onClick={() => {}}>
+          <Button widthSize="medium" heightSize="small" onClick={() => onFindLocations?.(postLocations)}>
             Find
           </Button>
           <Button widthSize="medium" heightSize="small" onClick={() => {}}>
