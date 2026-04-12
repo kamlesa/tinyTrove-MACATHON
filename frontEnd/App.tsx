@@ -25,8 +25,6 @@ import PostDetail from "./pages/PostDetail";
 import Button from './components/button';
 // --- NAVIGATION CONFIG ---
 const pages = [
-  { key: "home", label: "Home" },
-  { key: "map", label: "Map" },
   { key: "post", label: "Post" },
   { key: "search", label: "Search" },
   { key: "profile", label: "Profile" },
@@ -39,7 +37,7 @@ export default function App() {
   const [isInitializing, setIsInitializing] = useState(false);
 
   // Navigation State
-  const [activePage, setActivePage] = useState("home");
+  const [activePage, setActivePage] = useState("profile");
   const [currentStore, setCurrentStore] = useState(null);
   const [currentCommunity, setCurrentCommunity] = useState(null);
   const [currentTreasure, setCurrentTreasure] = useState(null);
