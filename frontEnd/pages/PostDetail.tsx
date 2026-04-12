@@ -28,6 +28,7 @@ export default function PostDetail({ post, onBack }) {
         location,
         photo_url,
         stores ( name, address ),
+        profiles ( username, display_name, avatar_url ),
         post_tags (
           treasure_tag (
             name
@@ -64,13 +65,30 @@ export default function PostDetail({ post, onBack }) {
     );
   }
 
-  const tagItems =
-    postData?.post_tags
+  const tagItems = [
+    ...(postData?.post_tags
       ?.map((item) => item.treasure_tag?.name)
-      .filter(Boolean) || [];
+      .filter(Boolean) || []),
+  ].filter(Boolean);
 
-  const displayName = post?.profiles?.display_name || post?.display_name || "Name not available";
-  const avatarUrl = post?.profiles?.avatar_url || post?.avatar_url || null;
+  if (!tagItems.length && postData?.treasure_tag) {
+    if (typeof postData.treasure_tag === "string") {
+      tagItems.push(postData.treasure_tag);
+    } else if (Array.isArray(postData.treasure_tag)) {
+      tagItems.push(...postData.treasure_tag.filter(Boolean));
+    } else if (postData.treasure_tag?.name) {
+      tagItems.push(postData.treasure_tag.name);
+    }
+  }
+
+  const displayName =
+    postData?.profiles?.display_name ||
+    postData?.profiles?.username ||
+    post?.profiles?.username ||
+    post?.display_name ||
+    "Username";
+  const avatarUrl =
+    postData?.profiles?.avatar_url || post?.profiles?.avatar_url || post?.photo_url || null;
 
   return (
     <View style={styles.page}>
@@ -109,7 +127,7 @@ export default function PostDetail({ post, onBack }) {
 
           <View style={styles.storeTextWrap}>
             <Text style={styles.storeName}>
-              {postData.stores?.name || "Shop name"}
+              {postData.location|| "Shop name"}
             </Text>
 
             {postData.stores?.address ? (
@@ -235,22 +253,46 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 12,
     marginBottom: 14,
-    borderWidth: 1,
   },
 
   storeIconWrap: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#F4EAE0",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
+    backgroundColor: "#fec27e",
   },
-
-  storeText: {
+  storeIcon: {
+    fontSize: 18,
+  },
+  storeTextWrap: {
+    flex: 1,
+  },
+  storeName: {
     fontSize: 16,
+    fontWeight: "700",
     color: "#2A211D",
+  },
+  storeAddress: {
+    fontSize: 14,
+    color: "#5A4A40",
+    marginTop: 4,
+  },
+  locationRow: {
+    marginBottom: 14,
+  },
+  locationLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#2A211D",
+    marginBottom: 6,
+  },
+  locationText: {
+    fontSize: 16,
+    color: "#4B423D",
+    lineHeight: 24,
   },
   tagsRow: {
     flexDirection: "row",
