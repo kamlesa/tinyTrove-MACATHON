@@ -88,6 +88,9 @@ export default function App() {
 
   const handleHeaderBack = () => {
     switch (activePage) {
+      case "postDetail":
+        setActivePage("profile");
+        break;
       case "storeMap":
       case "communityDetail":
       case "treasureDetail":
@@ -99,7 +102,7 @@ export default function App() {
     }
   };
 
-  const showBackButton = ["storeMap", "communityDetail", "treasureDetail"].includes(activePage);
+  const showBackButton = ["postDetail", "storeMap", "communityDetail", "treasureDetail"].includes(activePage);
 
 
   // --- LOADING STATE ---
