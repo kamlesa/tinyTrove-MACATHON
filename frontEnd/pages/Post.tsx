@@ -7,27 +7,47 @@ import {
   Pressable,
   Alert,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import LocationPicker from "../components/LocationPicker";
-import TagPicker from "../components/TagPicker";
+import TagPicker, { TagProps } from "../components/TagPicker";
 import { postApi } from "../lib/postApi";
+import ImageUploader from "../components/ImageUpload";
+import { supabase } from "../lib/supabase";
 
 // If using TypeScript (.tsx), use: export default function Post({ userId }: { userId: string })
-export default function Post({ userId }) {
+export default function Post({ userId, setActivePage }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState(null);
-  const [tags, setTags] = useState([]);
-  
+  const [tags, setTags] = useState<TagProps[]>([]);
+
   // ADDED: State for the image URL since your backend requires it
-  const [image, setImage] = useState(""); 
+  const [image, setImage] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
   const handleUploadComplete = (url: string) => {
+    console.log("url", url);
     // console.log('Image uploaded successfully:', url);
     setUploadedImageUrl(url);
+  };
+
+  const updateProfilePicture = async (userId: string, photo_url: string) => {
+    try {
+      const { error } = await supabase
+        .from("profiles") // to update
+        .update({ avatar_url: photo_url })
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      console.log("Profile picture updated");
+      // setRefreshKey(prev => prev + 1);
+      //getProfileData(); // delete
+    } catch (err) {
+      console.error(err);
+    }
   };
   async function submitPost() {
     // Safety check before calling the API
@@ -36,25 +56,37 @@ export default function Post({ userId }) {
       return;
     }
 
+    if (!location) {
+      Alert.alert("Error", "Location is required");
+      return;
+    }
+
+    if (tags.length === 0) {
+      Alert.alert("Error", "At least one tag is required");
+      return;
+    }
+
     setLoading(true);
     try {
-      // THE FIX: We are now passing exactly what the backend expects!
       const response = await postApi.createPost(
-        userId,       // <-- CRITICAL FIX
-        image,        // <-- CRITICAL FIX
+        userId,
+        uploadedImageUrl,
         description,
-        location
+        location,
+        tags
       );
-      
+
       Alert.alert("Success", "Post Created!");
-      
+
+      // Navigate to profile
+      setActivePage?.('profile');
+
       // Clear the form after success
       setTitle("");
       setDescription("");
       setImage("");
       setTags([]);
       setLocation(null);
-
     } catch (error) {
       // Axios errors hide the message in error.response.data
       const errorMsg = error.response?.data?.error || error.message;
@@ -69,14 +101,10 @@ export default function Post({ userId }) {
       <View style={styles.content}>
         <Text style={styles.title}>New Post</Text>
 
-        <Text style={styles.label}>Title *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter post title"
-          placeholderTextColor="#555"
-          value={title}
-          onChangeText={setTitle}
-          editable={!loading}
+        <ImageUploader
+          folderName={userId || "anonymous"}
+          bucketName="Posts"
+          onUploadComplete={handleUploadComplete}
         />
 
         <Text style={styles.label}>Description</Text>
@@ -92,17 +120,19 @@ export default function Post({ userId }) {
         />
 
         <LocationPicker chooseLocation={setLocation} />
-        
+
         {/* Fixed the filter bug here */}
         <TagPicker
-          addTag={(newItem) => setTags([...tags, newItem])}
-          removeTag={(itemToRemove) => 
+          addTag={(newItem) => {
+            setTags([...tags, newItem]);
+          }}
+          removeTag={(itemToRemove) =>
             setTags(tags.filter((t) => t !== itemToRemove))
           }
         />
 
-        <Pressable 
-          style={[styles.button, loading && styles.buttonDisabled]} 
+        <Pressable
+          style={[styles.button, loading && styles.buttonDisabled]}
           onPress={submitPost}
           disabled={loading}
         >
@@ -120,11 +150,11 @@ export default function Post({ userId }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFD09A",
+    backgroundColor: "#FFE6C9",
   },
   content: {
-    paddingHorizontal: 20,
-    paddingVertical: 50,
+    paddingHorizontal: 16,
+    paddingTop: 24,
     paddingBottom: 100, // Extra padding for ScrollView
   },
   title: {

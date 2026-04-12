@@ -88,6 +88,9 @@ export default function App() {
 
   const handleHeaderBack = () => {
     switch (activePage) {
+      case "postDetail":
+        setActivePage("profile");
+        break;
       case "storeMap":
       case "communityDetail":
       case "treasureDetail":
@@ -99,7 +102,7 @@ export default function App() {
     }
   };
 
-  const showBackButton = ["storeMap", "communityDetail", "treasureDetail"].includes(activePage);
+  const showBackButton = ["postDetail", "storeMap", "communityDetail", "treasureDetail"].includes(activePage);
 
 
   // --- LOADING STATE ---
@@ -139,7 +142,7 @@ export default function App() {
       case "map":
         return <Map locations={locations} />;
       case "post":
-        return <Post userId={userId} />;
+        return <Post userId={userId} setActivePage={setActivePage} />;
       case "search":
         return (
           <Search
