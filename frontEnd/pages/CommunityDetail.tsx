@@ -1,83 +1,171 @@
-import React from "react";
-import { View, Text, StyleSheet, Image, ScrollView, Pressable } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Pressable,
+  FlatList,
+} from "react-native";
 import Button from "../components/button";
-import ImageGrid from "../components/imageGrid";
+import { supabase } from "../lib/supabase";
 
-export default function Community({ community, onBack }) {
+export default function CommunityDetail({ community, onBack, onTreasureSelect, onPostSelect }) {
+  const [treasures, setTreasures] = useState([]);
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    if (community?.id) {
+      fetchCommunityContent();
+    }
+  }, [community]);
+
+  async function fetchCommunityContent() {
+    const communityId = community.id.replace(/^community-/, "");
+    console.log(community);
+
+    try {
+      const { data: communityTreasures, error: communityTreasuresError } = await supabase
+        .from("community_treasures")
+        .select("treasure_id")
+        .eq("community_id", communityId);
+
+      if (communityTreasuresError) throw communityTreasuresError;
+
+      const treasureIds = (communityTreasures || []).map((row) => row.treasure_id);
+      if (treasureIds.length > 0) {
+        const { data: treasureData, error: treasureError } = await supabase
+          .from("treasure_tag")
+          .select("id,name,descriptor,photo")
+          .in("id", treasureIds);
+
+        if (treasureError) throw treasureError;
+        setTreasures(treasureData || []);
+
+        const { data: postTags, error: postTagsError } = await supabase
+          .from("post_tags")
+          .select("post_id")
+          .in("tag_id", treasureIds);
+
+        if (postTagsError) throw postTagsError;
+
+        const postIds = Array.from(new Set((postTags || []).map((row) => row.post_id)));
+        if (postIds.length > 0) {
+          const { data: postsData, error: postsError } = await supabase
+            .from("posts")
+            .select("id,photo_url")
+            .in("id", postIds);
+
+          if (postsError) throw postsError;
+          setPosts(postsData || []);
+        } else {
+          setPosts([]);
+        }
+      } else {
+        setTreasures([]);
+        setPosts([]);
+      }
+    } catch (error) {
+      console.error("Error fetching community treasures/posts:", error);
+      setTreasures([]);
+      setPosts([]);
+    }
+  }
+
   if (!community) return null;
+  console.log(community.photo)
+  const photo_url = community.photo ?? "";
+  const banner_url = community.banner_url ?? "";
+  const title = community.name ?? "Community Name";
+  const members = community.number_of_members ?? "0";
 
-  const profile = community.profile ?? require("./Image1.png");
-  const background = community.background ?? require("./Image1.png");
-  const title = community.title ?? "title";
-  const members = community.members ?? "2999";
+  const treasureItems = treasures.map((item) => ({
+    id: `treasure-${item.id}`,
+    source: { uri: item.photo || "https://via.placeholder.com/80" },
+    onClick: () => onTreasureSelect?.({
+      ...item,
+      id: `treasure-${item.id}`,
+      photo: item.photo,
+      descriptor: item.descriptor,
+    }),
+  }));
 
-  const treasureImages = [
-    { id: "1", source: require("./Image1.png"), onClick: () => {} },
-    { id: "2", source: require("./Image1.png"), onClick: () => {} },
-    { id: "3", source: require("./Image1.png"), onClick: () => {} },
-    { id: "4", source: require("./Image1.png"), onClick: () => {} },
-    { id: "5", source: require("./Image1.png"), onClick: () => {} },
-    { id: "6", source: require("./Image1.png"), onClick: () => {} },
-  ];
+  const postImages = posts.map((item) => ({
+    id: item.id,
+    source: { uri: item.photo_url || "https://via.placeholder.com/100" },
+    onClick: () => onPostSelect?.(item),
+  }));
 
-  const postImages = [
-    { id: "1", source: require("./Image1.png"), onClick: () => {} },
-    { id: "2", source: require("./Image1.png"), onClick: () => {} },
-    { id: "3", source: require("./Image1.png"), onClick: () => {} },
-    { id: "4", source: require("./Image1.png"), onClick: () => {} },
-    { id: "5", source: require("./Image1.png"), onClick: () => {} },
-    { id: "6", source: require("./Image1.png"), onClick: () => {} },
-    { id: "7", source: require("./Image1.png"), onClick: () => {} },
-    { id: "8", source: require("./Image1.png"), onClick: () => {} },
-    { id: "9", source: require("./Image1.png"), onClick: () => {} },
-    { id: "10", source: require("./Image1.png"), onClick: () => {} },
-    { id: "11", source: require("./Image1.png"), onClick: () => {} },
-    { id: "12", source: require("./Image1.png"), onClick: () => {} },
-  ];
+  const headerComponent = (
+    <>
+      <View style={styles.topSection}>
+        <View style={styles.frame}>
+<Image
+  source={{ uri: banner_url }}
+  style={styles.banner_url}
+  resizeMode="cover"
+/>
 
-  return (
-    <View style={styles.page}>
-    <View style={styles.topSection}>
-      <View style={styles.frame}>
-        <Image source={background} style={styles.background} resizeMode="cover" />
-      </View>
+        </View>
 
-      <View style={styles.profileSection}>
-        <Image source={profile} style={styles.profile} resizeMode="cover" />
+        <View style={styles.profileSection}>
+<Image
+  source={{ uri: photo_url }}
+  style={styles.photo_url}
+  resizeMode="cover"
+/>
+          <View style={styles.infoContainer}>
+            <View style={styles.titleText}>
+              <Text style={styles.title}>{title}</Text>
 
-        <View style={styles.infoContainer}>
-          <View style={styles.titleText}>
-            <Text style={styles.title}>{title}</Text>
-
-            <View style={styles.memberBox}>
-              <Text style={styles.members}>{members} members</Text>
-              <Button widthSize="medium" heightSize="small" onClick={() => {}}>
-                Join Club
-              </Button>
+              <View style={styles.memberBox}>
+                <Text style={styles.members}>{members} members</Text>
+                <Button widthSize="medium" heightSize="small" onClick={() => {}}>
+                  Join Club
+                </Button>
+              </View>
             </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.treasureContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.treasureList}
-        >
-          {treasureImages.map((item) => (
-            <Pressable key={item.id} onPress={item.onClick} style={styles.treasureItem}>
-              <Image source={item.source} style={styles.treasureImage} resizeMode="cover" />
-            </Pressable>
-          ))}
-        </ScrollView>
+        <View style={styles.treasureContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.treasureList}
+          >
+            {treasureItems.map((item) => (
+              <Pressable key={item.id} onPress={item.onClick} style={styles.treasureItem}>
+                <Image source={item.source} style={styles.treasureImage} resizeMode="cover" />
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
       </View>
-    </View>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Community Treasure Posts</Text>
+      </View>
+    </>
+  );
 
-    <View style={styles.imageGrid}>
-      <ImageGrid images={postImages} />
-    </View>
-  </View>
+  return (
+    <FlatList
+      data={postImages}
+      keyExtractor={(item) => item.id}
+      numColumns={3}
+      renderItem={({ item }) => (
+        <Pressable style={styles.gridItem} onPress={item.onClick}>
+          <Image source={item.source} style={styles.gridImage} />
+        </Pressable>
+      )}
+      ListHeaderComponent={headerComponent}
+      ListEmptyComponent={
+        <Text style={styles.emptyText}>No posts yet!</Text>
+      }
+      contentContainerStyle={styles.gridContainer}
+      style={styles.page}
+    />
   );
 }
 
@@ -94,21 +182,15 @@ const styles = StyleSheet.create({
     height: 140,
     overflow: "hidden",
   },
-  background: {
+  banner_url: {
     width: "100%",
     height: "100%",
-  },
-  backButtonWrapper: {
-    position: "absolute",
-    top: 10,
-    left: 12,
-    zIndex: 10,
   },
   profileSection: {
     marginTop: -50,
     paddingHorizontal: 20,
   },
-  profile: {
+  photo_url: {
     height: 100,
     aspectRatio: 1,
     borderWidth: 2,
@@ -156,8 +238,32 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
-  imageGrid: {
-    flex: 1,
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
     backgroundColor: "#FFF8F0",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  gridItem: {
+    flex: 1 / 3,
+    aspectRatio: 1,
+    padding: 1,
+  },
+  gridImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 8,
+  },
+  gridContainer: {
+    padding: 10,
+  },
+  emptyText: {
+    textAlign: "center",
+    marginTop: 50,
+    color: "#999",
   },
 });

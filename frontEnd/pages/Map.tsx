@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     width: "100%",
-    backgroundColor: "white",
+    backgroundColor: "#FFE6C9",
     position: "relative",
   },
   webview: {

@@ -176,6 +176,8 @@ export default function App() {
           <CommunityDetail
             community={currentCommunity}
             onBack={() => setActivePage(previousPage)}
+            onTreasureSelect={(treasure) => handleTreasureSelect(treasure, "community")}
+            onPostSelect={(post) => handlePostSelect(post, "community")}
           />
         );
       case "treasureDetail":
@@ -183,6 +185,7 @@ export default function App() {
           <TreasureDetail
             treasure={currentTreasure}
             onBack={() => setActivePage(previousPage)}
+            onPostSelect={(post) => { setCurrentPost(post); setActivePage("postDetail"); }}
           />
         );
       case "postDetail":
