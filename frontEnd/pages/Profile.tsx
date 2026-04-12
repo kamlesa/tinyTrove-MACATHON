@@ -1,25 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, FlatList, ActivityIndicator, Pressable, Alert } from 'react-native';
-import { authApi } from '../lib/authApi';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Image,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+} from "react-native";
+import { authApi } from "../lib/authApi";
+import * as ImagePicker from "expo-image-picker";
+import { supabase } from "../lib/supabase";
 
-export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelect, onCreateCommunity}) {
+export function ProfileScreen({ 
+  userId, 
+  onLogout, 
+  onCommunitySelect, 
+  onPostSelect, 
+  onCreateCommunity 
+}) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [communities, setCommunities] = useState([]);
-  const [activeTab, setActiveTab] = useState('posts'); // 'posts' or 'communities'
+  const [activeTab, setActiveTab] = useState("posts");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [uploading, setUploading] = useState(false);
+
+  const folderName = userId;
+  const bucketName = "ProfilePictures";
 
   useEffect(() => {
     if (userId) {
       getProfileData();
     }
-  }, [userId]);
+  }, [userId, refreshKey]);
 
   async function getProfileData() {
     try {
       setLoading(true);
-      
-      // Fetch profile, posts, and communities in parallel
       const [profileData, postsData, communitiesData] = await Promise.all([
         authApi.getProfile(userId),
         authApi.getPosts(userId),
@@ -30,9 +50,7 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
       setPosts(postsData || []);
       setCommunities(communitiesData || []);
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.error || error.message);
-      console.error('Error fetching profile:', error);
-      console.log('Full error:', JSON.stringify(error, null, 2));
+      console.error("Error fetching profile:", error);
     } finally {
       setLoading(false);
     }
@@ -41,243 +59,202 @@ export function ProfileScreen({ userId, onLogout, onCommunitySelect, onPostSelec
   async function handleSignOut() {
     try {
       await authApi.signOut();
-      Alert.alert('Success', 'You have been signed out');
+      Alert.alert("Success", "You have been signed out");
       onLogout();
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.error || error.message);
+      Alert.alert("Error", error.message);
     }
   }
+
+  const pickAndUploadImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission required", "Need access to photos to upload.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (result.canceled) return;
+    const uri = result.assets[0].uri;
+
+    try {
+      setUploading(true);
+      const response = await fetch(uri);
+      const arrayBuffer = await response.arrayBuffer();
+      const filePath = `${folderName}/${Date.now()}.jpg`;
+
+      const { error } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, arrayBuffer, { contentType: "image/jpeg" });
+
+      if (error) throw error;
+
+      const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+      
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: data.publicUrl })
+        .eq("id", userId);
+
+      setRefreshKey((prev) => prev + 1);
+    } catch (err) {
+      Alert.alert("Upload failed", "Could not update profile picture.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#FF8FAB" />
+        <ActivityIndicator size="large" color="#71A5D3" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header Section */}
+    <View style={styles.page}>
+      {/* --- HEADER --- */}
       <View style={styles.header}>
-        <Image 
-          source={{ uri: profile?.avatar_url || 'https://via.placeholder.com/100' }} 
-          style={styles.avatar} 
-        />
-        <Text style={styles.displayName}>{profile?.display_name || 'Collector'}</Text>
-        <Text style={styles.username}>@{profile?.username}</Text>
-        
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{posts.length}</Text>
-            <Text style={styles.statLabel}>Posts</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{communities.length}</Text>
-            <Text style={styles.statLabel}>Communities</Text>
+        <View style={styles.headerRow}>
+          <Image
+            source={{ uri: profile?.avatar_url || "https://via.placeholder.com/160" }}
+            style={styles.avatar}
+          />
+          <View style={styles.profileDetails}>
+            <Text style={styles.displayName}>{profile?.display_name || "Collector"}</Text>
+            <Text style={styles.username}>@{profile?.username || "username"}</Text>
+            
+            <View style={styles.statsRow}>
+              <View style={styles.statBox}>
+                <Text style={styles.statNumber}>{posts.length}</Text>
+                <Text style={styles.statLabel}>Posts</Text>
+              </View>
+              <View style={styles.statBox}>
+                <Text style={styles.statNumber}>{communities.length}</Text>
+                <Text style={styles.statLabel}>Communities</Text>
+              </View>
+            </View>
+
+            <View style={styles.actionRow}>
+              <Pressable style={styles.editButton} onPress={pickAndUploadImage}>
+                <Text style={styles.editButtonText}>{uploading ? "..." : "Update Pic"}</Text>
+              </Pressable>
+              <Pressable style={styles.signOutButtonSmall} onPress={handleSignOut}>
+                <Text style={styles.signOutTextSmall}>Sign Out</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </View>
 
-      {/* Tab Navigation */}
-      <View style={styles.tabContainer}>
+      {/* --- TABS --- */}
+      <View style={styles.tabRow}>
         <Pressable 
-          style={[styles.tab, activeTab === 'posts' && styles.activeTab]}
-          onPress={() => setActiveTab('posts')}
+          style={[styles.tabButton, activeTab === "posts" && styles.activeTabButton]}
+          onPress={() => setActiveTab("posts")}
         >
-          <Text style={[styles.tabText, activeTab === 'posts' && styles.activeTabText]}>Posts</Text>
+          <Text style={styles.tabText}>Posts</Text>
         </Pressable>
         <Pressable 
-          style={[styles.tab, activeTab === 'communities' && styles.activeTab]}
-          onPress={() => setActiveTab('communities')}
+          style={[styles.tabButton, activeTab === "communities" && styles.activeTabButton]}
+          onPress={() => setActiveTab("communities")}
         >
-          <Text style={[styles.tabText, activeTab === 'communities' && styles.activeTabText]}>Communities</Text>
+          <Text style={styles.tabText}>Communities</Text>
         </Pressable>
       </View>
 
-      {/* Posts Grid */}
-      {activeTab === 'posts' && (
-        <FlatList
-          data={posts}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <Pressable
-              style={[styles.resultCard, styles.postResultCard]}
-              onPress={() => onPostSelect?.(item)}
-            >
-              <View style={[styles.iconCircle, styles.postIcon]}> 
-                {item.photo_url ? (
-                  <Image source={{ uri: item.photo_url }} style={styles.resultImage} />
-                ) : (
-                  <Text style={[styles.iconText, styles.postIconText]}>📸</Text>
-                )}
-              </View>
-              <View style={styles.resultText}>
-                <Text style={styles.resultName}>{item.caption || 'Untitled post'}</Text>
-                <Text style={styles.resultMeta}>{item.location || 'No location provided'}</Text>
-              </View>
-            </Pressable>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No posts yet!</Text>
-          }
-          contentContainerStyle={styles.resultsList}
-        />
-      )}
-
-      {/* Communities List */}
-      {activeTab === 'communities' && (
-        <FlatList
-          data={communities}
-          keyExtractor={(item) => item.id}
-          // ADDED: The Create Community Button sits at the top of the list!
-          ListHeaderComponent={
-            <Pressable 
-              style={styles.createCommunityBtn}
-              onPress={onCreateCommunity}
-            >
-              <Text style={styles.createCommunityBtnText}>+ Create New Community</Text>
-            </Pressable>
-          }
-          renderItem={({ item }) => (
-            <Pressable
-              style={[styles.resultCard, styles.communityCard]}
-              onPress={() => onCommunitySelect?.(item)}
-            >
-              <View style={[styles.iconCircle, styles.communityIcon]}>
-                {item.cover_image_url ? (
-                  <Image source={{ uri: item.cover_image_url }} style={styles.resultImage} />
-                ) : (
-                  <Text style={[styles.iconText, styles.communityIconText]}>👥</Text>
-                )}
-              </View>
-              <View style={styles.resultText}>
-                <Text style={styles.resultName}>{item.name}</Text>
-                <Text style={styles.resultMeta}>{item.description || 'Community details'}</Text>
-                <Text style={styles.resultMeta}>{item.number_of_members || 0} members</Text>
-              </View>
-            </Pressable>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No communities yet!</Text>
-          }
-          contentContainerStyle={styles.resultsList}
-        />
-      )}
-      
-      <Pressable style={styles.signOutButton} onPress={handleSignOut}>
-        <Text style={styles.signOutText}>Sign Out</Text>
-      </Pressable>
+      {/* --- CONTENT --- */}
+      {/* --- CONTENT AREA --- */}
+      <View style={styles.contentArea}>
+        {activeTab === "posts" ? (
+          <FlatList
+            key="posts-grid" // 👈 Unique key prevents numColumns crash
+            data={posts}
+            keyExtractor={(item) => String(item.id)}
+            numColumns={3}
+            renderItem={({ item }) => (
+              <Pressable style={styles.gridItem} onPress={() => onPostSelect?.(item)}>
+                <Image source={{ uri: item.photo_url }} style={styles.gridImage} />
+              </Pressable>
+            )}
+            ListEmptyComponent={<Text style={styles.emptyText}>No posts yet!</Text>}
+          />
+        ) : (
+          <FlatList
+            key="communities-list" // 👈 Unique key forces a fresh render
+            data={communities}
+            keyExtractor={(item) => String(item.id)}
+            numColumns={1} // Explicitly set to 1 for the list view
+            ListHeaderComponent={
+              <Pressable style={styles.createBtn} onPress={onCreateCommunity}>
+                <Text style={styles.createBtnText}>+ Create New Community</Text>
+              </Pressable>
+            }
+            renderItem={({ item }) => (
+              <Pressable style={styles.card} onPress={() => onCommunitySelect?.(item)}>
+                <View style={styles.iconCircle}>
+                  <Image 
+                    source={{ uri: item.cover_image_url || item.photo_url }} 
+                    style={styles.cardImage} 
+                  />
+                </View>
+                {/* Optimized cardText container */}
+                <View style={styles.cardText}>
+                  <Text style={styles.cardName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.cardMeta}>
+                    {item.number_of_members || 0} members
+                  </Text>
+                </View>
+              </Pressable>
+            )}
+            ListEmptyComponent={<Text style={styles.emptyText}>No communities yet!</Text>}
+          />
+        )}
+      </View>
     </View>
   );
 }
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#f0f0f0', marginBottom: 12 },
-  displayName: { fontSize: 22, fontWeight: 'bold', color: '#333' },
-  username: { fontSize: 14, color: '#FF8FAB', marginBottom: 15 },
-  statsRow: { flexDirection: 'row', marginTop: 10 },
-  statBox: { alignItems: 'center', marginHorizontal: 20 },
-  statNumber: { fontSize: 18, fontWeight: 'bold' },
-  statLabel: { fontSize: 12, color: '#666' },
-  tabContainer: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#eee' },
-  tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  activeTab: { borderBottomColor: '#FF8FAB' },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#999' },
-  activeTabText: { color: '#FF8FAB' },
-  
-  // ADDED: New button styles
-  createCommunityBtn: {
-    backgroundColor: '#71A5D3',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    margin: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  createCommunityBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
 
+const styles = StyleSheet.create({
+  page: { flex: 1, backgroundColor: "#FFD09A" },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFD09A" },
+  header: { padding: 20, paddingTop: 60, backgroundColor: "#FFD09A" },
+  headerRow: { flexDirection: "row", alignItems: "center" },
+  avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: "#FFF8F0" },
+  profileDetails: { flex: 1, marginLeft: 15 },
+  displayName: { fontSize: 20, fontWeight: "bold", color: "#333" },
+  username: { fontSize: 14, color: "#5a2835", marginBottom: 10 },
+  statsRow: { flexDirection: "row", marginBottom: 10 },
+  statBox: { marginRight: 20, alignItems: 'center' },
+  statNumber: { fontSize: 16, fontWeight: "bold" },
+  statLabel: { fontSize: 10, color: "#4C433E" },
+  actionRow: { flexDirection: "row", gap: 8 },
+  editButton: { backgroundColor: "#71A5D3", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15 },
+  editButtonText: { color: "#fff", fontSize: 12 },
+  signOutButtonSmall: { backgroundColor: "#D86D55", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15 },
+  signOutTextSmall: { color: "#fff", fontSize: 12 },
+  tabRow: { flexDirection: "row", backgroundColor: "#FFD09A" },
+  tabButton: { flex: 1, alignItems: "center", paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: "transparent" },
+  activeTabButton: { borderBottomColor: "#4B2E2B" },
+  tabText: { fontWeight: "600", color: "#4B2E2B" },
+  contentArea: { flex: 1, backgroundColor: "#FFE6C9" },
   gridItem: { flex: 1/3, aspectRatio: 1, padding: 1 },
-  resultCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
-    marginHorizontal: 16, // Added to match the button spacing
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 12,
-    elevation: 3,
-    backgroundColor: '#fff',
-  },
-  postResultCard: {
-    backgroundColor: '#F5E5D8',
-    borderLeftWidth: 4,
-    borderLeftColor: '#A47552',
-    marginTop: 16, // Padding for the first post
-  },
-  communityCard: {
-    backgroundColor: '#E8F2FF',
-    borderLeftWidth: 4,
-    borderLeftColor: '#71A5D3',
-  },
-  iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  postIcon: {
-    backgroundColor: '#E8D4C1',
-  },
-  communityIcon: {
-    backgroundColor: '#DCE8F8',
-  },
-  resultImage: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-  },
-  iconText: {
-    fontSize: 24,
-  },
-  postIconText: {
-    color: '#7A4C2A',
-  },
-  communityIconText: {
-    color: '#2B5B8A',
-  },
-  resultText: {
-    flex: 1,
-  },
-  resultName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#231f20',
-    marginBottom: 6,
-  },
-  resultMeta: {
-    fontSize: 14,
-    color: '#6e5a68',
-  },
-  resultsList: {
-    paddingBottom: 40,
-  },
-  emptyText: { textAlign: 'center', marginTop: 20, color: '#999' },
-  signOutButton: { margin: 20, padding: 15, borderRadius: 8, backgroundColor: '#f5f5f5', alignItems: 'center' },
-  signOutText: { color: '#ff4d4d', fontWeight: 'bold' }
+  gridImage: { width: "100%", height: "100%" },
+  createBtn: { backgroundColor: "#71A5D3", margin: 15, padding: 12, borderRadius: 10, alignItems: 'center' },
+  createBtnText: { color: "#fff", fontWeight: "bold" },
+  card: { flexDirection: "row", backgroundColor: "#fff", marginHorizontal: 15, marginBottom: 10, padding: 12, borderRadius: 12, alignItems: 'center' },
+  iconCircle: { width: 50, height: 50, borderRadius: 25, overflow: 'hidden', marginRight: 12 },
+  cardImage: { width: "100%", height: "100%" },
+  cardName: { fontWeight: "bold", fontSize: 16 },
+  cardMeta: { fontSize: 12, color: "#666" },
+  emptyText: { textAlign: "center", marginTop: 40, color: "#6A625B" },
+  cardText: { flex: 1, justifyContent: "center" },
 });

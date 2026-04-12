@@ -10,15 +10,6 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ error: "User ID is required" });
     }
 
-    if (!tags || tags.length === 0) {
-      return res.status(400).json({ error: "At least one tag is required" });
-    }
-
-    if (!location) {
-      return res.status(400).json({ error: "Location is required" });
-    }
-
-    console.log(req.body);
     // 3. Insert into the database
     const { data: postData, error: postError } = await supabase
       .from("posts")
@@ -27,6 +18,7 @@ export const createPost = async (req, res) => {
           user_id: userId, // Corrected: Links the post to the user
           photo_url: image,
           caption: description,
+          treasure_tag: tags,
           location: location,
         },
       ])
@@ -38,30 +30,11 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ error: postError.message });
     }
 
-    console.log("tagss", tags);
-    if (tags?.length) {
-      const tagRows = tags.map(
-        (tag) => (
-          console.log("postdata", postData[0].id),
-          console.log("tag", tag.id),
-          {
-            post_id: postData[0].id,
-            tag_id: tag.id,
-          }
-        )
-      );
-
-      const { error: tagError } = await supabase
-        .from("post_tags")
-        .insert(tagRows);
-
-      if (tagError) throw tagError;
-    }
-
     console.log("Successfully made post");
 
     // 5. Send the newly created post data back to the app
     res.status(201).json(postData);
+
   } catch (err) {
     console.error("Server Error:", err);
     res.status(500).json({ error: err.message });
@@ -138,50 +111,41 @@ export const createCommunity = async (req, res) => {
   }
 };
 
+// postController.js
+
 export const createTag = async (req, res) => {
   try {
-    // 1. Extract the incoming data
-    const { 
-      userId, 
-      name, 
-      description, 
-      photo_url 
-    } = req.body;
+    // 1. Added communityId to the extraction
+    const { userId, name, description, photo_url, communityId } = req.body;
 
-    // 2. Safety check: need an ID and a Name
-    if (!userId || !name) {
-      return res.status(400).json({ error: "User ID and Tag Name are required" });
+    if (!userId || !name || !communityId) {
+      return res.status(400).json({ error: "User ID, Name, and Community ID are required" });
     }
 
-    // 3. STEP ONE: Insert into 'treasure_tag' table
-    // Note: Column names changed to match your schema (descriptor/photo)
+    // 2. Create the Tag in the master list
     const { data: tagData, error: tagError } = await supabase
       .from("treasure_tag") 
-      .insert([
-        {
-          name: name,
-          descriptor: description || null, // Matches 'descriptor' in your schema
-          photo: photo_url || null,       // Matches 'photo' in your schema
-          // If you have a 'creator_id' column, add it here:
-          // creator_id: userId 
-        },
-      ])
+      .insert([{ name, descriptor: description || null, photo: photo_url || null }])
       .select();
 
-    // 4. Check for database errors
-    if (tagError) {
-      console.error("Database Error (Treasure Tag):", tagError);
-      return res.status(400).json({ error: tagError.message });
+    if (tagError) return res.status(400).json({ error: tagError.message });
+
+    const newTagId = tagData[0].id;
+
+    // 3. CRITICAL: Link this tag to the specific community
+    const { error: linkError } = await supabase
+      .from("community_treasures")
+      .insert([{ 
+        community_id: communityId.replace(/^community-/, ""), // Ensure clean ID
+        treasure_id: newTagId 
+      }]);
+
+    if (linkError) {
+      console.error("Failed to link tag to community:", linkError);
     }
 
-    console.log(`Successfully created tag: ${name}`);
-
-    // 5. Send the newly created tag data back to the app
-    // We return tagData[0] because .insert().select() returns an array
     res.status(201).json(tagData[0]);
-
   } catch (err) {
-    console.error("Server Error:", err);
     res.status(500).json({ error: err.message });
   }
 };

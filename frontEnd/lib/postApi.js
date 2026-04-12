@@ -48,18 +48,17 @@ export const postApi = {
       throw err; 
     }
   },
-  createTag: async (userId, name, description, photoUrl) => {
+  createTag: async (userId, name, description, photoUrl, communityId) => {
     try {
       const response = await axiosInstance.post("/post/create-tag", {
-        userId,        // CRITICAL: The backend needs this to pass the safety check
+        userId,
         name,
-        description,   // Matches 'description' in your req.body
-        photo_url: photoUrl, // Maps camelCase to the 'photo_url' the backend expects
+        description,
+        photo_url: photoUrl,
+        communityId, // <--- This must be here!
       });
       return response.data;
     } catch (err) {
-      console.log("Create Tag Error: ", err);
-      // Always throw the error so your UI can show an Alert to the user
       throw err; 
     }
   },

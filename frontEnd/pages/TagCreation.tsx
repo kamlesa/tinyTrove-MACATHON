@@ -9,26 +9,32 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { postApi } from "../lib/postApi"; // Ensure this path is correct
+import { postApi } from "../lib/postApi";
 
-export default function CreateTag({ userId, onGoBack }) {
+// 1. Ensure communityId is received as a prop
+export default function CreateTag({ userId, communityId, onGoBack }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleCreate = async () => {
+    // 2. Validation check: communityId is now required for the DB link to work
     if (!name) return Alert.alert("Error", "Name is required");
+    if (!communityId) {
+      return Alert.alert("Error", "No community found. Please go back and try again.");
+    }
     
     setLoading(true);
     try {
-      // Passing all 4 required/supported arguments to your API
-      await postApi.createTag(userId, name, description, photoUrl);
+      // 3. Passing the 5th argument: communityId
+      // This allows the backend to link this tag to the specific community
+      await postApi.createTag(userId, name, description, photoUrl, communityId);
       
       Alert.alert("Success", "Tag Created!");
-      onGoBack(); // Navigate back to the profile or search screen
+      onGoBack(); 
     } catch (error) {
-      // Shows the specific error from Supabase or your Express server
+      // Catching the 400 error we saw earlier and showing the server's message
       Alert.alert("Error", error.response?.data?.error || error.message);
     } finally {
       setLoading(false);
