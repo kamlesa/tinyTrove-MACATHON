@@ -22,6 +22,7 @@ import StoreMap from './pages/StoreMap';
 import CommunityDetail from './pages/CommunityDetail';
 import TreasureDetail from './pages/TreasureDetail';
 import PostDetail from './pages/PostDetail';
+import Button from './components/button';
 
 const pages = [
   { key: "post", label: "Post" },
@@ -107,6 +108,24 @@ export default function App() {
     { id: "2", address: "Kidstuff Malvern", title: "Kidstuff Malvern" },
     { id: "3", address: "21 Chancellors Walk, Clayton VIC 3168", title: "Monash Kuromi Store" },
   ];
+
+  const showBackButton = ["postDetail", "storeMap", "communityDetail", "treasureDetail"].includes(activePage);
+
+  const handleHeaderBack = () => {
+    switch (activePage) {
+      case "postDetail":
+        setActivePage("profile");
+        break;
+      case "storeMap":
+      case "communityDetail":
+      case "treasureDetail":
+        setActivePage("search");
+        break;
+      default:
+        setActivePage("home");
+        break;
+    }
+  };
 
   const renderContent = () => {
     switch (activePage) {
