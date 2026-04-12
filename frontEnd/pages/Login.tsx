@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Alert, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { View, Image,  Text, TextInput, Alert, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { authApi } from '../lib/authApi';
 
 export function LoginScreen({ onLoginSuccess }) {
@@ -43,8 +43,13 @@ export function LoginScreen({ onLoginSuccess }) {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={{ uri: "https://hhygpdtwzluzgvagrbqm.supabase.co/storage/v1/object/public/CommunityPictures/tinytrove.png" }}
+        style={{ width: 300, height: 300, alignSelf: 'center', marginBottom: 0, marginTop: 30, }}
+        resizeMode="contain"
+      />
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>tinyTrove</Text>
+        
         <Text style={styles.subtitle}>{isSignUp ? 'Join the community.' : 'Find your next obsession.'}</Text>
       </View>
 
@@ -117,7 +122,7 @@ export function LoginScreen({ onLoginSuccess }) {
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFD09A', padding: 20, justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: '#FFD09A', padding: 20, },
   headerContainer: { marginBottom: 40, alignItems: 'center' },
   title: { fontSize: 42, fontWeight: 'bold', color: '#8C5A3C' },
   subtitle: { fontSize: 16, color: '#8C5A3C', marginTop: 8 },
