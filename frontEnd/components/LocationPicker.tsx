@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { supabase } from "../lib/supabase";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface LocationPickerProps {
   chooseLocation: (location: string) => void;
@@ -89,21 +90,29 @@ export default function LocationPicker({
       </Pressable>
 
       {/* MODAL */}
+
       <Modal visible={modalVisible} animationType="slide">
+          <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.modal}>
-          {/* SEARCH */}
-          <TextInput
-            style={styles.input}
-            placeholder="Search location..."
-            value={query}
-            onChangeText={setQuery}
-          />
+          {/* HEADER */}
+          <View style={styles.header}>
+            <TextInput
+              style={styles.input}
+              placeholder="Search location..."
+              value={query}
+              onChangeText={setQuery}
+            />
+            <Pressable style={styles.closeButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.closeText}>×</Text>
+            </Pressable>
+          </View>
 
           {/* 🔥 NO RESULTS BUTTON (UNDER SEARCH BAR) */}
           {query.trim().length > 0 && filtered.length === 0 && (
-            <Pressable
-              style={styles.addButton}
-              onPress={async () => {
+            <View style={{ paddingHorizontal: 20 }}>
+              <Pressable
+                style={styles.addButton}
+                onPress={async () => {
                 try {
                   console.log("pressed");
                   // 1. Geocode query → lat/lng
@@ -169,6 +178,7 @@ export default function LocationPicker({
                 Location not in list? Add "{query.replace(/\b\w/g, c => c.toUpperCase())}"
               </Text>
             </Pressable>
+            </View>
           )}
 
           {/* LIST */}
@@ -191,13 +201,10 @@ export default function LocationPicker({
                 </Text>
               </Pressable>
             )}
+            contentContainerStyle={{ paddingHorizontal: 20 }}
           />
-
-          {/* CLOSE */}
-          <Pressable onPress={() => setModalVisible(false)}>
-            <Text style={styles.close}>Close</Text>
-          </Pressable>
         </View>
+        </SafeAreaView>
       </Modal>
     </View>
   );
@@ -228,28 +235,43 @@ const styles = StyleSheet.create({
 
   modal: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#fff",
   },
 
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
   input: {
+    flex: 1,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    fontSize: 16,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#e8d8d0",
+    marginRight: 10,
+    color: "#2e1d14",
+  },
+
+  closeButton: {
     padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+  },
+
+  closeText: {
+    fontSize: 24,
+    color: "#666",
   },
 
   item: {
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-  },
-
-  close: {
-    marginTop: 20,
-    textAlign: "center",
-    color: "blue",
   },
 
   addButton: {

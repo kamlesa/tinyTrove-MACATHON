@@ -16,7 +16,7 @@ import ImageUploader from "../components/ImageUpload";
 import { supabase } from "../lib/supabase";
 
 // If using TypeScript (.tsx), use: export default function Post({ userId }: { userId: string })
-export default function Post({ userId }) {
+export default function Post({ userId, setActivePage }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState(null);
@@ -56,6 +56,16 @@ export default function Post({ userId }) {
       return;
     }
 
+    if (!location) {
+      Alert.alert("Error", "Location is required");
+      return;
+    }
+
+    if (tags.length === 0) {
+      Alert.alert("Error", "At least one tag is required");
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await postApi.createPost(
@@ -67,6 +77,9 @@ export default function Post({ userId }) {
       );
 
       Alert.alert("Success", "Post Created!");
+
+      // Navigate to profile
+      setActivePage?.('profile');
 
       // Clear the form after success
       setTitle("");
@@ -137,11 +150,11 @@ export default function Post({ userId }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFD09A",
+    backgroundColor: "#FFE6C9",
   },
   content: {
-    paddingHorizontal: 20,
-    paddingVertical: 50,
+    paddingHorizontal: 16,
+    paddingTop: 24,
     paddingBottom: 100, // Extra padding for ScrollView
   },
   title: {

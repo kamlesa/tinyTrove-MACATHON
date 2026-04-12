@@ -10,6 +10,14 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ error: "User ID is required" });
     }
 
+    if (!tags || tags.length === 0) {
+      return res.status(400).json({ error: "At least one tag is required" });
+    }
+
+    if (!location) {
+      return res.status(400).json({ error: "Location is required" });
+    }
+
     console.log(req.body);
     // 3. Insert into the database
     const { data: postData, error: postError } = await supabase
@@ -23,6 +31,12 @@ export const createPost = async (req, res) => {
         },
       ])
       .select();
+
+    // 4. Check for database errors specific to THIS query
+    if (postError) {
+      console.error("Database Error:", postError);
+      return res.status(400).json({ error: postError.message });
+    }
 
     console.log("tagss", tags);
     if (tags?.length) {
@@ -42,11 +56,6 @@ export const createPost = async (req, res) => {
         .insert(tagRows);
 
       if (tagError) throw tagError;
-    }
-    // 4. Check for database errors specific to THIS query
-    if (postError) {
-      console.error("Database Error:", postError);
-      return res.status(400).json({ error: postError.message });
     }
 
     console.log("Successfully made post");
