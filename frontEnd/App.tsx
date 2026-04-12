@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#211A19",
   },
   centered: {
     flex: 1,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#211A19",
     position: "relative",
   },
 
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#FF8FAB",
+    color: "#FFF8F0",
   },
   mainContent: {
     flex: 1,
@@ -294,8 +294,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingBottom: 40,
     borderTopWidth: 1,
-    borderTopColor: "#eee",
-    backgroundColor: "#fff",
+    borderTopColor: "#211A19",
+    backgroundColor: "#211A19",
   },
   navButton: {
     paddingVertical: 8,
@@ -303,14 +303,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   activeButton: {
-    backgroundColor: "#FFE5EC", // Light pink highlight
+    backgroundColor: "#71A5D3", // Light pink highlight
   },
   navButtonText: {
     fontWeight: "600",
-    color: "#666",
+    color: "#FFE6C9",
     fontSize: 12,
   },
   activeButtonText: {
-    color: "#FF8FAB", // Main pink
+    color: "#FFF8F0", // Main pink
   },
 });
