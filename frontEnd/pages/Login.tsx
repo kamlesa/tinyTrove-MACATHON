@@ -117,15 +117,15 @@ export function LoginScreen({ onLoginSuccess }) {
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 20, justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: '#FFD09A', padding: 20, justifyContent: 'center' },
   headerContainer: { marginBottom: 40, alignItems: 'center' },
-  title: { fontSize: 42, fontWeight: 'bold', color: '#FF8FAB' },
-  subtitle: { fontSize: 16, color: '#666', marginTop: 8 },
-  inputContainer: { gap: 12, marginBottom: 24 },
-  input: { borderWidth: 1, borderColor: '#ddd', padding: 16, borderRadius: 8, fontSize: 16 },
-  buttonContainer: { gap: 12, color: '#666' },
-  primaryButton: { backgroundColor: '#FF8FAB', padding: 16, borderRadius: 8, alignItems: 'center' },
-  primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  title: { fontSize: 42, fontWeight: 'bold', color: '#8C5A3C' },
+  subtitle: { fontSize: 16, color: '#8C5A3C', marginTop: 8 },
+  inputContainer: { gap: 12, marginBottom: 24},
+  input: { borderWidth: 1,textAlignVertical: "center", backgroundColor: '#FFF8F0', borderColor: "#8C5A3C", paddingLeft: 12, paddingBottom: 0,paddingTop: 0, borderRadius: 999, fontSize: 16, height: 36, justifyContent: "center"},
+  buttonContainer: { gap: 12, color: '#8C5A3C' },
+  primaryButton: { backgroundColor: '#71A5D3', borderColor: "#8C5A3C", borderWidth: 1, padding: 5, alignItems: 'center', borderRadius: 999 },
+  primaryButtonText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   secondaryButton: { backgroundColor: 'transparent', padding: 16, alignItems: 'center' },
-  secondaryButtonText: { color: '#000000', fontSize: 16, fontWeight: 'bold' },
+  secondaryButtonText: { color: '#8C5A3C', fontSize: 16, fontWeight: 'bold' },
 });

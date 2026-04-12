@@ -7,6 +7,7 @@ export default function Map({ locations = [] }) {
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   const locationsJson = JSON.stringify(locations);
+  const mapsAPIKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
   const mapHTML = `
 <!DOCTYPE html>
@@ -119,7 +120,7 @@ export default function Map({ locations = [] }) {
 
   const onMessage = (event) => {
     const data = JSON.parse(event.nativeEvent.data);
-    if (data.type === 'markerClick') {
+    if (data.type === "markerClick") {
       setSelectedLocation(data.location);
     }
   };
@@ -140,7 +141,10 @@ export default function Map({ locations = [] }) {
         }}
       />
       {selectedLocation && (
-        <StoreInfoPanel location={selectedLocation} onClose={() => setSelectedLocation(null)} />
+        <StoreInfoPanel
+          location={selectedLocation}
+          onClose={() => setSelectedLocation(null)}
+        />
       )}
     </View>
   );
@@ -150,7 +154,7 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     width: "100%",
-    backgroundColor: "white",
+    backgroundColor: "#FFE6C9",
     position: "relative",
   },
   webview: {

@@ -148,7 +148,7 @@ export default function App() {
       case "map":
         return <Map locations={locations} />;
       case "post":
-        return <Post userId={userId} />;
+        return <Post userId={userId} setActivePage={setActivePage} />;
       case "search":
         return (
           <Search
@@ -199,6 +199,9 @@ export default function App() {
             community={currentCommunity}
             userId={userId} // Pass the ID down
             onBack={() => setActivePage(previousPage)}
+            onTreasureSelect={(treasure) => handleTreasureSelect(treasure, "community")}
+            onPostSelect={(post) => handlePostSelect(post, "community")}
+          />
             onCreateTag={() => {
               setPreviousPage('communityDetail'); 
               setActivePage('createTag');        
@@ -228,6 +231,24 @@ export default function App() {
           <TreasureDetail
             treasure={currentTreasure}
             onBack={() => setActivePage(previousPage)}
+            onPostSelect={(post) => { setCurrentPost(post); setActivePage("postDetail"); }}
+          />
+        );
+      case "createTag":
+      return (
+        <CreateTag 
+          userId={userId} 
+          // When they finish or hit cancel, they go back to the Community page
+          onGoBack={() => setActivePage(previousPage)} 
+        />
+      );
+
+      case "treasureDetail":
+        return (
+          <TreasureDetail
+            treasure={currentTreasure}
+            onBack={() => setActivePage(previousPage)}
+            onPostSelect={(post) => { setCurrentPost(post); setActivePage("postDetail"); }}
           />
         );
       case "postDetail":
@@ -246,13 +267,25 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      {/* Top Header */}
+
       <View style={styles.header}>
+        {showBackButton && (
+          <View style={styles.backButtonWrapper}>
+            <Button widthSize="icon" heightSize="icon" onClick={handleHeaderBack}>
+              ←
+            </Button>
+          </View>
+        )}
+
         <Text style={styles.appTitle}>tinyTrove</Text>
       </View>
 
       {/* Main Page Content */}
-      <View style={styles.mainContent}>{renderContent()}</View>
+      <View style={styles.mainContent}>
+        {renderContent()}
+      </View>
+
+     
 
       {/* Navigation Footer */}
       <View style={styles.footer}>
@@ -281,9 +314,10 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#211A19",
   },
   centered: {
     flex: 1,
@@ -291,16 +325,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    paddingTop: 20,
+    paddingTop: 40,
     paddingBottom: 10,
     alignItems: "center",
+    justifyContent: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#211A19",
+    position: "relative",
   },
+
+  backButtonWrapper: {
+    position: "absolute",
+    left: 12,
+    top: 30,
+    zIndex: 1,
+  },
+
   appTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#FF8FAB",
+    color: "#FFF8F0",
   },
   mainContent: {
     flex: 1,
@@ -315,9 +359,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     paddingVertical: 14,
+    paddingBottom: 40,
     borderTopWidth: 1,
-    borderTopColor: "#eee",
-    backgroundColor: "#fff",
+    borderTopColor: "#211A19",
+    backgroundColor: "#211A19",
   },
   navButton: {
     paddingVertical: 8,
@@ -325,14 +370,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   activeButton: {
-    backgroundColor: "#FFE5EC", // Light pink highlight
+    backgroundColor: "#71A5D3", // Light pink highlight
   },
   navButtonText: {
     fontWeight: "600",
-    color: "#666",
+    color: "#FFE6C9",
     fontSize: 12,
   },
   activeButtonText: {
-    color: "#FF8FAB", // Main pink
+    color: "#FFF8F0", // Main pink
   },
 });

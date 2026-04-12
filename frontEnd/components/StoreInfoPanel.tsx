@@ -41,7 +41,11 @@ interface StoreInfoPanelProps {
 
 export default function StoreInfoPanel({ location, onClose }: StoreInfoPanelProps) {
   const screenWidth = Dimensions.get("window").width;
-  const gridItemWidth = (screenWidth - 30) / 2;
+  const panelHorizontalMargin = 24; // left 12 + right 12
+  const panelInnerPadding = 20; // paddingHorizontal 10 on both sides
+  const gridGap = 8;
+  const gridItemWidth =
+    (screenWidth - panelHorizontalMargin - panelInnerPadding - gridGap) / 2;
 
   const renderPhotoCarousel = ({ item }) => (
     <View style={styles.carouselItem}>
@@ -51,10 +55,9 @@ export default function StoreInfoPanel({ location, onClose }: StoreInfoPanelProp
   );
 
   const renderGridPhoto = ({ item }) => (
-    <Image
-      source={item.uri}
-      style={[styles.gridImage, { width: gridItemWidth, height: gridItemWidth }]}
-    />
+    <View style={styles.gridItemWrapper}>
+      <Image source={item.uri} style={styles.gridImage} />
+    </View>
   );
 
   return (
@@ -108,88 +111,125 @@ const styles = StyleSheet.create({
   panel: {
     position: "absolute",
     bottom: 0,
-    left: 0,
-    right: 0,
-    maxHeight: "65%",
-    backgroundColor: "white",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 15,
+    left: 12,
+    right: 12,
+    maxHeight: "68%",
+    backgroundColor: "#FFD09A",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
   },
+
   scrollContent: {
     flexGrow: 1,
   },
+
   header: {
-    marginBottom: 15,
+    marginBottom: 10,
+    backgroundColor: "#8C5A3C",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
+
   headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
+
   storeName: {
     fontSize: 22,
-    fontWeight: "bold",
-    color: "#2e1d14",
-    marginBottom: 5,
+    fontWeight: "700",
+    color: "#FFF8F0",
     flex: 1,
+    marginBottom: 2,
   },
+
   closeBtn: {
-    padding: 8,
-    marginLeft: 10,
+    paddingLeft: 8,
+    paddingTop: 2,
   },
+
   closeBtnText: {
     fontSize: 20,
-    color: "#999",
-    fontWeight: "300",
+    color: "#FFF8F0",
+    fontWeight: "400",
   },
+
   storeAddress: {
     fontSize: 14,
-    color: "#666",
-    marginBottom: 10,
+    color: "#FFF8F0",
   },
+
   carouselSection: {
-    marginBottom: 15,
+    marginBottom: 12,
+    backgroundColor: "#FFE6C9",
+    borderRadius: 10,
+    padding: 10,
   },
+
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#3d2b1f",
-    marginBottom: 10,
+    fontWeight: "700",
+    color: "#3A291F",
+    marginBottom: 8,
   },
+
   carousel: {
     flexDirection: "row",
   },
+
   carouselItem: {
-    marginRight: 12,
+    marginRight: 10,
     alignItems: "center",
   },
+
   carouselImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 8,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 2,
+    borderColor: "#FFE6C9",
   },
+
   carouselCaption: {
     fontSize: 12,
-    color: "#666",
+    color: "#6B5342",
     marginTop: 5,
     textAlign: "center",
-    width: 90,
+    width: 70,
   },
+
   gridSection: {
+    backgroundColor: "#FFE6C9",
+    borderRadius: 10,
+    padding: 10,
     marginBottom: 10,
   },
+
   gridRow: {
-    justifyContent: "space-between",
-    marginBottom: 10,
+  justifyContent: "space-between",
+  marginBottom: 8,
   },
+
+  gridItemWrapper: {
+    width: "48.5%",
+    aspectRatio: 1,
+  },
+
   gridImage: {
-    borderRadius: 8,
+    width: "100%",
+    height: "100%",
+    borderRadius: 6,
+    backgroundColor: "#ffffff",
   },
+
 });
