@@ -64,7 +64,7 @@ export default function App() {
       case 'home': return <HomeScreen onLogout={handleLogout} />;
       case 'profile': return <ProfileScreen userId={userId} onLogout={handleLogout} />;
       case 'map': return <Map />;
-      case 'post': return <Post userId={userId} />;
+      case 'post': return <Post userId={userId} setActivePage={setActivePage} />;
       case 'search': return <Search />;
       default: return <HomeScreen onLogout={handleLogout} />;
     }

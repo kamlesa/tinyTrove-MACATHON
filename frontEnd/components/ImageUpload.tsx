@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,9 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { supabase } from '../lib/supabase'
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { supabase } from "../lib/supabase";
 
 type Props = {
   folderName: string;
@@ -17,18 +17,21 @@ type Props = {
   onUploadComplete?: (url: string) => void;
 };
 
-const ImageUploader: React.FC<Props> = ({ folderName, bucketName, onUploadComplete }) => {
+const ImageUploader: React.FC<Props> = ({
+  folderName,
+  bucketName,
+  onUploadComplete,
+}) => {
   const [image, setImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const requestPermission = async () => {
-    const { status } =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (status !== 'granted') {
+    if (status !== "granted") {
       Alert.alert(
-        'Permission required',
-        'We need access to your photos to upload an image.'
+        "Permission required",
+        "We need access to your photos to upload an image."
       );
       return false;
     }
@@ -40,7 +43,7 @@ const ImageUploader: React.FC<Props> = ({ folderName, bucketName, onUploadComple
     if (!hasPermission) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'], 
+      mediaTypes: ["images"],
       allowsEditing: true,
       quality: 0.8,
     });
@@ -62,29 +65,27 @@ const ImageUploader: React.FC<Props> = ({ folderName, bucketName, onUploadComple
       const { error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, arrayBuffer, {
-          contentType: 'image/jpeg',
+          contentType: "image/jpeg",
         });
 
       if (error) throw error;
 
-      const { data } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(filePath);
+      const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath);
 
       const publicUrl = data.publicUrl;
 
       onUploadComplete?.(publicUrl);
     } catch (err) {
-      console.error('Upload error:', err);
+      console.error("Upload error:", err);
       Alert.alert(
-        'Upload failed',
-        'Check your internet connection or Supabase setup.'
+        "Upload failed",
+        "Check your internet connection or Supabase setup."
       );
     } finally {
       setUploading(false);
     }
   };
-
+  /**
   return (
     <View style={styles.container}>
       <Pressable style={styles.button} onPress={pickAndUploadImage}>
@@ -104,24 +105,38 @@ const ImageUploader: React.FC<Props> = ({ folderName, bucketName, onUploadComple
       )}
     </View>
   );
+ */
+  return (
+    <View style={styles.container}>
+      {!image ? (
+        <Pressable style={styles.button} onPress={pickAndUploadImage}>
+          <Text style={styles.buttonText}>Upload Image</Text>
+        </Pressable>
+      ) : (
+        <Pressable onPress={pickAndUploadImage}>
+          <Image source={{ uri: image }} style={styles.preview} />
+        </Pressable>
+      )}
+    </View>
+  );
 };
 
 export default ImageUploader;
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 12,
   },
   button: {
-    backgroundColor: '#4F8CFF',
+    backgroundColor: "#4F8CFF",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
   preview: {
     width: 200,

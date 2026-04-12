@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,24 +8,50 @@ import {
   FlatList,
   StyleSheet,
 } from "react-native";
+import { supabase } from "../lib/supabase";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-interface TagPickerProps {
-  addTag: (tag: string) => void;
-  removeTag: (tag: string) => void;
+export interface TagPickerProps {
+  addTag: (tag: TagProps) => void;
+  removeTag: (tag: TagProps) => void;
+}
+
+export interface TagProps {
+  id: string;
+  name: string;
+  photo: string;
 }
 
 export default function TagPicker({ addTag, removeTag }: TagPickerProps) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<TagProps[]>([]);
+  const [allTags, setAllTags] = useState<TagProps[]>([]);
   const [query, setQuery] = useState("");
 
   const mockTags = ["Kuromi", "Hello Kitty", "Pikachu"];
 
-  const filtered = mockTags.filter((item) =>
-    item.toLowerCase().includes(query.toLowerCase())
+  useEffect(() => {
+    async function fetchTags() {
+      const { data, error } = await supabase
+        .from("treasure_tag")
+        .select("id,name,photo");
+
+      if (!error) setAllTags(data || []);
+    }
+
+    fetchTags();
+  }, []);
+  const treasureQuery = supabase.from("treasure_tag").select("id,name,photo");
+
+  // const filtered = mockTags.filter((item) =>
+  //  item.toLowerCase().includes(query.toLowerCase())
+  //);
+
+  const filtered = allTags.filter((item) =>
+    item.name.toLowerCase().includes(query.toLowerCase())
   );
 
-  const handleAddTag = (tag: string) => {
+  const handleAddTag = (tag: TagProps) => {
     if (!tags.includes(tag)) {
       const updated = [...tags, tag];
       setTags(updated);
@@ -33,8 +59,8 @@ export default function TagPicker({ addTag, removeTag }: TagPickerProps) {
     }
   };
 
-  const handleRemoveTag = (tag: string) => {
-    const updated = tags.filter((t) => t !== tag);
+  const handleRemoveTag = (tag: TagProps) => {
+    const updated = tags.filter((t) => t.id !== tag.id);
     setTags(updated);
     removeTag(tag);
   };
@@ -53,20 +79,26 @@ export default function TagPicker({ addTag, removeTag }: TagPickerProps) {
 
       {/* MODAL */}
       <Modal visible={modalVisible} animationType="slide">
+                  <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.modal}>
-          {/* SEARCH */}
-          <TextInput
-            style={styles.input}
-            placeholder="Search tags..."
-            value={query}
-            onChangeText={setQuery}
-          />
+          {/* HEADER */}
+          <View style={styles.header}>
+            <TextInput
+              style={styles.input}
+              placeholder="Search tags..."
+              value={query}
+              onChangeText={setQuery}
+            />
+            <Pressable style={styles.closeButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.closeText}>×</Text>
+            </Pressable>
+          </View>
 
           {tags.length > 0 && (
             <View style={styles.selectedBox}>
               {tags.map((tag) => (
-                <View key={tag} style={styles.tag}>
-                  <Text style={styles.tagText}>{tag}</Text>
+                <View key={tag.id} style={styles.tag}>
+                  <Text style={styles.tagText}>{tag.name}</Text>
 
                   <Pressable onPress={() => handleRemoveTag(tag)}>
                     <Text style={styles.remove}>×</Text>
@@ -79,19 +111,16 @@ export default function TagPicker({ addTag, removeTag }: TagPickerProps) {
           {/* LIST */}
           <FlatList
             data={filtered}
-            keyExtractor={(item) => item}
+            keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <Pressable style={styles.item} onPress={() => handleAddTag(item)}>
-                <Text>{item}</Text>
+                <Text>{item.name}</Text>
               </Pressable>
             )}
+            contentContainerStyle={{ paddingHorizontal: 20 }}
           />
-
-          {/* CLOSE */}
-          <Pressable onPress={() => setModalVisible(false)}>
-            <Text style={styles.close}>Close</Text>
-          </Pressable>
         </View>
+                </SafeAreaView>
       </Modal>
     </View>
   );
@@ -135,14 +164,44 @@ const styles = StyleSheet.create({
 
   modal: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#fff",
+  },
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
+  input: {
+    flex: 1,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#e8d8d0",
+    marginRight: 10,
+    color: "#2e1d14",
+  },
+
+  closeButton: {
+    padding: 10,
+  },
+
+  closeText: {
+    fontSize: 24,
+    color: "#666",
   },
 
   selectedBox: {
     flexDirection: "row",
     flexWrap: "wrap",
     marginBottom: 15,
+    padding: 20,
   },
 
   tag: {
@@ -166,23 +225,9 @@ const styles = StyleSheet.create({
     color: "#666",
   },
 
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-
   item: {
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-  },
-
-  close: {
-    marginTop: 20,
-    textAlign: "center",
-    color: "blue",
   },
 });
