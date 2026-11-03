@@ -4,8 +4,14 @@
     "slug": "macathon-2026",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": ["ios", "android", "web"],
-    "assetBundlePatterns": ["**/*"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "plugins": [
       [
         "expo-location",
@@ -13,7 +19,9 @@
           "locationAlwaysAndWhenInUsePermission": "Allow MACATHON 2026 to access your location"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-splash-screen",
+      "expo-status-bar"
     ]
   }
 }
