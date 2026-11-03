@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator,} from "react-native";
+import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, Pressable,} from "react-native";
 import { supabase } from "../lib/supabase";
 
-export default function PostDetail({ post, onBack }) {
+export default function PostDetail({ post, onBack, onOpenStore }) {
   const [postData, setPostData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -89,6 +89,13 @@ export default function PostDetail({ post, onBack }) {
     "Username";
   const avatarUrl =
     postData?.profiles?.avatar_url || post?.profiles?.avatar_url || post?.photo_url || null;
+  const storeLocation = postData?.location
+    ? {
+        id: postData.id,
+        title: postData.location,
+        address: postData.location,
+      }
+    : null;
 
   return (
     <View style={styles.page}>
@@ -125,15 +132,19 @@ export default function PostDetail({ post, onBack }) {
             <Text style={styles.storeIcon}>📍</Text>
           </View>
 
-          <View style={styles.storeTextWrap}>
+          <Pressable
+            style={styles.storeTextWrap}
+            onPress={() => storeLocation && onOpenStore?.(storeLocation)}
+            disabled={!storeLocation}
+          >
             <Text style={styles.storeName}>
-              {postData.location|| "Shop name"}
+              {postData.location || "Shop name"}
             </Text>
 
             {postData.stores?.address ? (
               <Text style={styles.storeAddress}>{postData.stores.address}</Text>
             ) : null}
-          </View>
+          </Pressable>
         </View>
 
         <View style={styles.tagsRow}>

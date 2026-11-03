@@ -92,7 +92,7 @@ export function Search({ onStoreSelect, onCommunitySelect, onTreasureSelect }) {
       //TODO: add function that gets community name of related character
 
       const communityResults = (communityData || []).map((community) => ({
-        id: `community-${community.id}`,
+        id: community.id, // Pure UUID
         type: "community",
         name: community.name,
         description: community.description,
@@ -104,14 +104,14 @@ export function Search({ onStoreSelect, onCommunitySelect, onTreasureSelect }) {
       }));
 
       const storeResults = (storeData || []).map((store) => ({
-        id: `store-${store.id}`,
+        id: store.id, // Pure UUID
         type: "store",
         name: store.name,
         address: store.address,
       }));
 
       const treasureResults = (treasureData || []).map((treasure) => ({
-        id: `treasure-${treasure.id}`,
+        id: treasure.id, // Pure UUID
         type: "treasure",
         name: treasure.name,
         descriptor: treasure.descriptor,
