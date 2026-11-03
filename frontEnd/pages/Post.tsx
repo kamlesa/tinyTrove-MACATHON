@@ -13,7 +13,6 @@ import LocationPicker from "../components/LocationPicker";
 import TagPicker, { TagProps } from "../components/TagPicker";
 import { postApi } from "../lib/postApi";
 import ImageUploader from "../components/ImageUpload";
-import { supabase } from "../lib/supabase";
 
 // If using TypeScript (.tsx), use: export default function Post({ userId }: { userId: string })
 export default function Post({ userId, setActivePage }) {
@@ -33,22 +32,6 @@ export default function Post({ userId, setActivePage }) {
     setUploadedImageUrl(url);
   };
 
-  const updateProfilePicture = async (userId: string, photo_url: string) => {
-    try {
-      const { error } = await supabase
-        .from("profiles") // to update
-        .update({ avatar_url: photo_url })
-        .eq("id", userId);
-
-      if (error) throw error;
-
-      console.log("Profile picture updated");
-      // setRefreshKey(prev => prev + 1);
-      //getProfileData(); // delete
-    } catch (err) {
-      console.error(err);
-    }
-  };
   async function submitPost() {
     // Safety check before calling the API
     if (!userId) {
@@ -69,7 +52,6 @@ export default function Post({ userId, setActivePage }) {
     setLoading(true);
     try {
       const response = await postApi.createPost(
-        userId,
         uploadedImageUrl,
         description,
         location,
@@ -102,7 +84,6 @@ export default function Post({ userId, setActivePage }) {
         <Text style={styles.title}>New Post</Text>
 
         <ImageUploader
-          folderName={userId || "anonymous"}
           bucketName="Posts"
           onUploadComplete={handleUploadComplete}
         />

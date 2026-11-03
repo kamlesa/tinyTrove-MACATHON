@@ -1,17 +1,14 @@
-import { supabase } from "../UserAuth.js";
+// Storage buckets the app is allowed to upload into
+const UPLOAD_BUCKETS = ["Posts", "ProfilePictures"];
 
 export const createPost = async (req, res) => {
   try {
     // 1. Extract the incoming data
-    const { userId, image, description, location, tags } = req.body;
+    const { image, description, location, tags } = req.body;
+    const userId = req.user.id;
     const normalizedTags = Array.isArray(tags)
       ? tags.filter((tag) => tag?.id)
       : [];
-
-    // 2. Safety check: make sure we have a user ID before proceeding
-    if (!userId) {
-      return res.status(400).json({ error: "User ID is required" });
-    }
 
     if (normalizedTags.length === 0) {
       return res.status(400).json({ error: "At least one tag is required" });
@@ -21,13 +18,12 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ error: "Location is required" });
     }
 
-    console.log(req.body);
-    // 3. Insert into the database
-    const { data: postData, error: postError } = await supabase
+    // 2. Insert into the database
+    const { data: postData, error: postError } = await req.supabase
       .from("posts")
       .insert([
         {
-          user_id: userId, // Corrected: Links the post to the user
+          user_id: userId,
           photo_url: image,
           caption: description,
           location: location,
@@ -37,35 +33,24 @@ export const createPost = async (req, res) => {
       ])
       .select();
 
-    // 4. Check for database errors specific to THIS query
+    // 3. Check for database errors specific to THIS query
     if (postError) {
       console.error("Database Error:", postError);
       return res.status(400).json({ error: postError.message });
     }
 
-    console.log("tagss", normalizedTags);
-    if (normalizedTags.length) {
-      const tagRows = normalizedTags.map(
-        (tag) => (
-          console.log("postdata", postData[0].id),
-          console.log("tag", tag.id),
-          {
-            post_id: postData[0].id,
-            tag_id: tag.id,
-          }
-        )
-      );
+    const tagRows = normalizedTags.map((tag) => ({
+      post_id: postData[0].id,
+      tag_id: tag.id,
+    }));
 
-      const { error: tagError } = await supabase
-        .from("post_tags")
-        .insert(tagRows);
+    const { error: tagError } = await req.supabase
+      .from("post_tags")
+      .insert(tagRows);
 
-      if (tagError) throw tagError;
-    }
+    if (tagError) throw tagError;
 
-    console.log("Successfully made post");
-
-    // 5. Send the newly created post data back to the app
+    // 4. Send the newly created post data back to the app
     res.status(201).json(postData);
 
   } catch (err) {
@@ -76,23 +61,23 @@ export const createPost = async (req, res) => {
 export const createCommunity = async (req, res) => {
   try {
     // 1. Extract the incoming data
-    const { 
-      userId, 
-      name, 
-      description, 
-      photo_url, 
-      banner_url, 
-      tags, 
-      theme_color 
+    const {
+      name,
+      description,
+      photo_url,
+      banner_url,
+      tags,
+      theme_color
     } = req.body;
+    const userId = req.user.id;
 
-    // 2. Safety check: need an ID and a Name
-    if (!userId || !name) {
-      return res.status(400).json({ error: "User ID and Community Name are required" });
+    // 2. Safety check: need a Name
+    if (!name) {
+      return res.status(400).json({ error: "Community Name is required" });
     }
 
     // 3. STEP ONE: Create the Community (with safe null fallbacks)
-    const { data: communityData, error: communityError } = await supabase
+    const { data: communityData, error: communityError } = await req.supabase
       .from("communities")
       .insert([
         {
@@ -118,7 +103,7 @@ export const createCommunity = async (req, res) => {
 
     // 4. STEP TWO: Auto-Join the Creator
     // We use the ID of the community we just created above!
-    const { error: memberError } = await supabase
+    const { error: memberError } = await req.supabase
       .from("community_members")
       .insert([
         {
@@ -144,20 +129,17 @@ export const createCommunity = async (req, res) => {
   }
 };
 
-// postController.js
-
 export const createTag = async (req, res) => {
   try {
-    // 1. Added communityId to the extraction
-    const { userId, name, description, photo_url, communityId } = req.body;
+    const { name, description, photo_url, communityId } = req.body;
 
-    if (!userId || !name || !communityId) {
-      return res.status(400).json({ error: "User ID, Name, and Community ID are required" });
+    if (!name || !communityId) {
+      return res.status(400).json({ error: "Name and Community ID are required" });
     }
 
-    // 2. Create the Tag in the master list
-    const { data: tagData, error: tagError } = await supabase
-      .from("treasure_tag") 
+    // 1. Create the Tag in the master list
+    const { data: tagData, error: tagError } = await req.supabase
+      .from("treasure_tag")
       .insert([{ name, descriptor: description || null, photo: photo_url || null }])
       .select();
 
@@ -165,12 +147,12 @@ export const createTag = async (req, res) => {
 
     const newTagId = tagData[0].id;
 
-    // 3. CRITICAL: Link this tag to the specific community
-    const { error: linkError } = await supabase
+    // 2. CRITICAL: Link this tag to the specific community
+    const { error: linkError } = await req.supabase
       .from("community_treasures")
-      .insert([{ 
-        community_id: communityId.replace(/^community-/, ""), // Ensure clean ID
-        treasure_id: newTagId 
+      .insert([{
+        community_id: String(communityId).replace(/^community-/, ""), // Ensure clean ID
+        treasure_id: newTagId
       }]);
 
     if (linkError) {
@@ -178,6 +160,37 @@ export const createTag = async (req, res) => {
     }
 
     res.status(201).json(tagData[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Accepts a base64 JPEG, stores it under the user's folder, returns its public URL
+export const uploadImage = async (req, res) => {
+  try {
+    const { bucket, base64 } = req.body;
+
+    if (!UPLOAD_BUCKETS.includes(bucket)) {
+      return res.status(400).json({ error: `bucket must be one of: ${UPLOAD_BUCKETS.join(", ")}` });
+    }
+
+    if (!base64) {
+      return res.status(400).json({ error: "Image data is required" });
+    }
+
+    const filePath = `${req.user.id}/${Date.now()}.jpg`;
+
+    const { error } = await req.supabase.storage
+      .from(bucket)
+      .upload(filePath, Buffer.from(base64, "base64"), { contentType: "image/jpeg" });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    const { data } = req.supabase.storage.from(bucket).getPublicUrl(filePath);
+
+    res.status(201).json({ url: data.publicUrl });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, Pressable,} from "react-native";
-import { supabase } from "../lib/supabase";
+import { contentApi } from "../lib/contentApi";
 
 export default function PostDetail({ post, onBack, onOpenStore }) {
   const [postData, setPostData] = useState(null);
@@ -20,30 +20,12 @@ export default function PostDetail({ post, onBack, onOpenStore }) {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await supabase
-      .from("posts")
-      .select(`
-        id,
-        caption,
-        location,
-        photo_url,
-        stores ( name, address ),
-        profiles ( username, display_name, avatar_url ),
-        post_tags (
-          treasure_tag (
-            name
-          )
-        )
-      `)
-      .eq("id", post.id)
-      .single();
-
-    if (error) {
-      console.error("Post detail fetch error", error);
-      setError(error.message);
+    try {
+      setPostData(await contentApi.getPost(post.id));
+    } catch (err) {
+      console.error("Post detail fetch error", err);
+      setError(err.response?.data?.error || err.message);
       setPostData(null);
-    } else {
-      setPostData(data);
     }
 
     setLoading(false);

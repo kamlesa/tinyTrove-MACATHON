@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { authApi } from "../lib/authApi";
 import * as ImagePicker from "expo-image-picker";
-import { supabase } from "../lib/supabase";
+import { postApi } from "../lib/postApi";
 
 export function ProfileScreen({ 
   userId, 
@@ -28,7 +28,6 @@ export function ProfileScreen({
   const [refreshKey, setRefreshKey] = useState(0);
   const [uploading, setUploading] = useState(false);
 
-  const folderName = userId;
   const bucketName = "ProfilePictures";
 
   useEffect(() => {
@@ -77,29 +76,15 @@ export function ProfileScreen({
       mediaTypes: ["images"],
       allowsEditing: true,
       quality: 0.8,
+      base64: true,
     });
 
     if (result.canceled) return;
-    const uri = result.assets[0].uri;
 
     try {
       setUploading(true);
-      const response = await fetch(uri);
-      const arrayBuffer = await response.arrayBuffer();
-      const filePath = `${folderName}/${Date.now()}.jpg`;
-
-      const { error } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, arrayBuffer, { contentType: "image/jpeg" });
-
-      if (error) throw error;
-
-      const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-      
-      await supabase
-        .from("profiles")
-        .update({ avatar_url: data.publicUrl })
-        .eq("id", userId);
+      const avatarUrl = await postApi.uploadImage(bucketName, result.assets[0].base64);
+      await authApi.updateAvatar(avatarUrl);
 
       setRefreshKey((prev) => prev + 1);
     } catch (err) {

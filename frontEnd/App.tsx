@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
   Image
 } from "react-native";
-import { authApi } from "./lib/authApi"; 
+import { authApi } from "./lib/authApi";
+import { setOnSessionExpired } from "./lib/axios";
 
 // --- SCREENS ---
 import { LoginScreen } from './pages/Login';
@@ -49,6 +50,12 @@ export default function App() {
     setSession(null);
     setUserId(null);
   };
+
+  // Send the user back to Login if their session can't be refreshed
+  useEffect(() => {
+    setOnSessionExpired(handleLogout);
+    return () => setOnSessionExpired(null);
+  }, []);
 
   const handleStoreSelect = (store, origin = "search") => {
     setCurrentStore(store);

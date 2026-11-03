@@ -9,16 +9,15 @@ import {
   ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { supabase } from "../lib/supabase";
+import { postApi } from "../lib/postApi";
 
 type Props = {
-  folderName: string;
+  // "Posts" | "ProfilePictures"; files are stored under the signed-in user's folder
   bucketName: string;
   onUploadComplete?: (url: string) => void;
 };
 
 const ImageUploader: React.FC<Props> = ({
-  folderName,
   bucketName,
   onUploadComplete,
 }) => {
@@ -46,40 +45,25 @@ const ImageUploader: React.FC<Props> = ({
       mediaTypes: ["images"],
       allowsEditing: true,
       quality: 0.8,
+      base64: true,
     });
 
     if (result.canceled) return;
 
-    const uri = result.assets[0].uri;
-    // console.log('Image URI:', uri);
-    setImage(uri);
+    const asset = result.assets[0];
+    setImage(asset.uri);
 
     try {
       setUploading(true);
 
-      const response = await fetch(uri);
-      const arrayBuffer = await response.arrayBuffer();
-
-      const filePath = `${folderName}/${Date.now()}.jpg`;
-
-      const { error } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, arrayBuffer, {
-          contentType: "image/jpeg",
-        });
-
-      if (error) throw error;
-
-      const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-
-      const publicUrl = data.publicUrl;
+      const publicUrl = await postApi.uploadImage(bucketName, asset.base64);
 
       onUploadComplete?.(publicUrl);
     } catch (err) {
       console.error("Upload error:", err);
       Alert.alert(
         "Upload failed",
-        "Check your internet connection or Supabase setup."
+        err.response?.data?.error || "Check your internet connection."
       );
     } finally {
       setUploading(false);
