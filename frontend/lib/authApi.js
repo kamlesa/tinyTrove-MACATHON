@@ -1,5 +1,4 @@
 import { axiosInstance } from "./axios";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 export const authApi = {
   signIn: async (email, password) => {
