@@ -20,8 +20,8 @@ export default function CommunityDetail({
   onBack, 
   onTreasureSelect, 
   onPostSelect,
-  checkStatus,
-  userId
+  userId,
+  onRequireSignIn
 }) {
   const [treasures, setTreasures] = useState([]);
   const [posts, setPosts] = useState([]);
@@ -47,18 +47,18 @@ export default function CommunityDetail({
   }, [userId, community?.id]);
 
   const handleJoin = useCallback(async () => {
+    if (!userId) return onRequireSignIn?.();
     setActionLoading(true);
     try {
       await authApi.joinCommunity(community.id);
       Alert.alert("Success", "Welcome to the Club!");
       setLocalMemberStatus("member");
-      if (checkStatus) await checkStatus();
     } catch (error) {
       Alert.alert("Error", error.message || "Could not join community");
     } finally {
       setActionLoading(false);
     }
-  }, [community, userId, checkStatus]);
+  }, [community, userId, onRequireSignIn]);
 
   const handleLeave = useCallback(async () => {
     Alert.alert("Leave Club?", "Are you sure you want to leave?", [
@@ -71,7 +71,6 @@ export default function CommunityDetail({
           try {
             await authApi.leaveCommunity(community.id);
             setLocalMemberStatus("non-member");
-            if (checkStatus) await checkStatus();
           } catch (error) {
             Alert.alert("Error", "Could not leave community");
           } finally {
@@ -80,7 +79,7 @@ export default function CommunityDetail({
         },
       },
     ]);
-  }, [community, userId, checkStatus]);
+  }, [community, userId]);
 
   // --- 2. DATA FETCHING ---
   useEffect(() => {

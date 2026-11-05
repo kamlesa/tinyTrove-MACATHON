@@ -51,6 +51,18 @@ export const postApi = {
     });
     return response.data;
   },
+  // status: "validated" | "sold_out", or null to clear your check.
+  // Returns { validation_count, sold_out_count, stock_status, stock_updated_at, my_status }
+  setCheck: async (postId, status) => {
+    const response = status
+      ? await axiosInstance.put(`/post/${postId}/check`, { status })
+      : await axiosInstance.delete(`/post/${postId}/check`);
+    return response.data;
+  },
+  addComment: async (postId, body) => {
+    const response = await axiosInstance.post(`/post/${postId}/comments`, { body });
+    return response.data;
+  },
   // bucket: "Posts" | "ProfilePictures". Returns the image's public URL.
   uploadImage: async (bucket, base64) => {
     const response = await axiosInstance.post("/post/upload-image", { bucket, base64 });

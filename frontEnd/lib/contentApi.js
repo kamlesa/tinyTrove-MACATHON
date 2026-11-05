@@ -1,6 +1,17 @@
 import { axiosInstance } from "./axios";
 
 export const contentApi = {
+  // Returns { mode: "popular" | "personalized", items, has_more }
+  getFeed: async (offset = 0, limit = 20) => {
+    const response = await axiosInstance.get("/feed", { params: { offset, limit } });
+    return response.data;
+  },
+
+  getComments: async (postId) => {
+    const response = await axiosInstance.get(`/content/posts/${postId}/comments`);
+    return response.data;
+  },
+
   // Returns { communities, stores, treasures }
   search: async (query) => {
     const response = await axiosInstance.get("/content/search", { params: { q: query } });

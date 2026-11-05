@@ -1,3 +1,5 @@
+import { CHECKS_SELECT, summarizeChecks } from "./engagementController.js";
+
 const mapsApiKey =
   process.env.GOOGLE_MAPS_API_KEY || process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -68,16 +70,19 @@ export const getPost = async (req, res) => {
       .from("posts")
       .select(`
         id,
+        user_id,
         caption,
         location,
         photo_url,
         stores ( name, address ),
-        profiles ( username, display_name, avatar_url ),
+        profiles!user_id ( username, display_name, avatar_url ),
         post_tags (
           treasure_tag (
             name
           )
-        )
+        ),
+        ${CHECKS_SELECT},
+        post_comments ( count )
       `)
       .eq("id", req.params.postId)
       .single();
@@ -86,7 +91,13 @@ export const getPost = async (req, res) => {
       return res.status(404).json({ error: error.message });
     }
 
-    res.json(data);
+    const { post_checks, post_comments, ...post } = data;
+    res.json({
+      ...post,
+      ...summarizeChecks(post_checks, req.user?.id),
+      comment_count: post_comments?.[0]?.count ?? 0,
+      is_mine: req.user?.id === data.user_id,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
